@@ -83,6 +83,22 @@ void Viewer::run()
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::lookAt(camera_pos_, camera_pos_ + camera_front_, camera_up_);
 
+
+        float speed = 0.05f;
+
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
+            camera_pos_ += speed * camera_front_;
+
+        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
+            camera_pos_ -= speed * camera_front_;
+
+        if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
+            camera_pos_ -= glm::normalize(glm::cross(camera_front_, camera_up_)) * speed;
+
+        if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
+            camera_pos_ += glm::normalize(glm::cross(camera_front_, camera_up_)) * speed;
+
+
         scene_root->draw(model, view, projection);
 
         glfwPollEvents();

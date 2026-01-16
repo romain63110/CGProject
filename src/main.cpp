@@ -1,6 +1,7 @@
 #include "viewer.h"
 #include "textured_sphere.h"
 #include "lighting_sphere.h"
+#include "cylinder.h"
 #include "texture.h"
 #include "node.h"
 #include "shader.h"
@@ -61,9 +62,15 @@ int main()
     
     Node* sphere2_node = new Node(sphere2_mat);
 
+    Shape* cylinder1 = new Cylinder(phong_shader, 1.f, 1.f, 16);
+    glm::mat4 cylinder_mat = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+    Node* cylinder1_node = new Node(cylinder_mat);
+    
+    cylinder1_node->add(cylinder1);
     sphere2_node->add(sphere2);
 
     viewer.scene_root->add(sphere2_node);
+    viewer.scene_root->add(cylinder1);
 
     viewer.run();
 }
