@@ -68,46 +68,69 @@ Viewer::Viewer(int width, int height)
 
 void Viewer::run()
 {
+    double lastTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(win))
     {
-        // clear draw buffer
+        double now = glfwGetTime();
+        float dt = float(now - lastTime);
+        lastTime = now;
+
+
+        test_angle_ += 45.0f * dt;
+        if (aircraft_node)
+        {
+            glm::mat4 T = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+            glm::mat4 R = glm::rotate(glm::mat4(1.0f), glm::radians(test_angle_), glm::vec3(0, 1, 0));
+
+            aircraft_node->set_transform(T * R);
+        }
+      
+        glfwPollEvents();
+
+        
+        float speed = 3.f;
+        float move = speed * dt;
+
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
+            camera_pos_ += move * camera_front_;
+
+        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
+            camera_pos_ -= move * camera_front_;
+
+        glm::vec3 right = glm::normalize(glm::cross(camera_front_, camera_up_));
+
+        if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
+            camera_pos_ -= right * move;
+
+        if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
+            camera_pos_ += right * move;
+
+         //render
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         int width, height;
         glfwGetFramebufferSize(win, &width, &height);
-
         if (height == 0) height = 1;
+
         float aspect_ratio = (float)width / (float)height;
 
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
         glm::mat4 model = glm::mat4(1.0f);
+        //glm::mat4 model = glm::rotate(glm::mat4(1.0f),
+          //  glm::radians(test_angle_),
+            //glm::vec3(0.0f, 1.0f, 0.0f));
         glm::mat4 view = glm::lookAt(camera_pos_, camera_pos_ + camera_front_, camera_up_);
-
-
-        float speed = 0.05f;
-
-        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
-            camera_pos_ += speed * camera_front_;
-
-        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
-            camera_pos_ -= speed * camera_front_;
-
-        if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
-            camera_pos_ -= glm::normalize(glm::cross(camera_front_, camera_up_)) * speed;
-
-        if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
-            camera_pos_ += glm::normalize(glm::cross(camera_front_, camera_up_)) * speed;
-
 
         scene_root->draw(model, view, projection);
 
-        glfwPollEvents();
-
+        //display
         glfwSwapBuffers(win);
     }
 
     glfwTerminate();
 }
+
 
 
 void Viewer::key_callback_static(GLFWwindow* window, int key, int scancode, int action, int mods)

@@ -62,15 +62,21 @@ int main()
     
     Node* sphere2_node = new Node(sphere2_mat);
 
-    Shape* cylinder1 = new Cylinder(phong_shader, 1.f, 0.5f, 16);
+    Shape* cylinder1 = new Cylinder(phong_shader, 2.f, 0.5f, 16);
     glm::mat4 cylinder_mat = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     Node* cylinder1_node = new Node(cylinder_mat);
     
     cylinder1_node->add(cylinder1);
     sphere2_node->add(sphere2);
 
+    Node* aircraftNode = new Node(glm::mat4(1.0f));
+    aircraftNode->add(cylinder1);
+
+    viewer.scene_root->add(aircraftNode);
+
+    viewer.aircraft_node = aircraftNode;
     //viewer.scene_root->add(sphere2_node);
-    viewer.scene_root->add(cylinder1);
+    //viewer.scene_root->add(cylinder1);
 
     viewer.run();
 }

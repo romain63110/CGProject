@@ -10,6 +10,9 @@
 #include "shader.h"
 #include "node.h"
 
+
+
+
 class Viewer {
 public:
     Viewer(int width=640, int height=480);
@@ -19,6 +22,8 @@ public:
     void on_mouse_move(double xpos, double ypos);
     void on_mouse_button(int button, int action);
 
+    Node* aircraft_node = nullptr;
+
     Node *scene_root;
 
 private:
@@ -27,7 +32,7 @@ private:
     static void cursor_pos_callback_static(GLFWwindow* window, double xpos, double ypos);
     static void mouse_button_callback_static(GLFWwindow* window, int button, int action, int mods);
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
+    float test_angle_ = 0.0f;
     //CAMERA
     bool mouse_captured_ = false;
     bool first_mouse_ = true;
