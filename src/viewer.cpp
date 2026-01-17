@@ -4,9 +4,8 @@
 #include <glm/glm.hpp>
 #include "glm/ext.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-#include <aircraft_sim.h>
 
-Viewer::Viewer(int width, int height, AircraftSim* sim)
+Viewer::Viewer(int width, int height)
 {
     if (!glfwInit()) 
     {
@@ -54,8 +53,6 @@ Viewer::Viewer(int width, int height, AircraftSim* sim)
     last_x_ = width / 2.0;
     last_y_ = height / 2.0;
 
-    sim_ = sim;
-
 
     std::cout << glGetString(GL_VERSION) << ", GLSL "
               << glGetString(GL_SHADING_LANGUAGE_VERSION) << ", Renderer "
@@ -71,25 +68,9 @@ Viewer::Viewer(int width, int height, AircraftSim* sim)
 
 void Viewer::run()
 {
-    double lastTime = glfwGetTime();
-
     while (!glfwWindowShouldClose(win))
     {
-        double now = glfwGetTime();
-        float dt = (float)(now - lastTime);
-        lastTime = now;
-
-        sim_->step(dt);
-        glm::vec3 pos = sim_->getPosition();
-        glm::quat rot = sim_->getOrientation();
-
-        glm::mat4 aircraft_model =
-            glm::translate(glm::mat4(1.0f), pos) *
-            glm::mat4_cast(rot);
-
-        if (aircraft_node_)
-            aircraft_node_->set_transform(aircraft_model);
-
+        // clear draw buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         int width, height;
@@ -102,30 +83,31 @@ void Viewer::run()
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::lookAt(camera_pos_, camera_pos_ + camera_front_, camera_up_);
 
-        float speed = 3.0f * dt;
 
-        if (glfwGetKey(win, GLFW_KEY_Z) == GLFW_PRESS)
+        float speed = 0.05f;
+
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
             camera_pos_ += speed * camera_front_;
 
         if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
             camera_pos_ -= speed * camera_front_;
 
-        if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS)
+        if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
             camera_pos_ -= glm::normalize(glm::cross(camera_front_, camera_up_)) * speed;
 
         if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
             camera_pos_ += glm::normalize(glm::cross(camera_front_, camera_up_)) * speed;
 
+
         scene_root->draw(model, view, projection);
 
         glfwPollEvents();
+
         glfwSwapBuffers(win);
     }
 
     glfwTerminate();
 }
-
-
 
 
 void Viewer::key_callback_static(GLFWwindow* window, int key, int scancode, int action, int mods)

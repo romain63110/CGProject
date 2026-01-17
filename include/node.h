@@ -14,8 +14,6 @@ public:
     void add(Shape* shape);
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
     void key_handler(int key) const;
-    void set_transform(const glm::mat4& transform);
-    const glm::mat4& get_transform() const;
     
 private:
     glm::mat4 transform_;
