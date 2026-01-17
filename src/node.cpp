@@ -33,3 +33,11 @@ void Node::key_handler(int key) const {
             child->key_handler(key);
     }
 }
+
+void Node::set_transform(const glm::mat4& transform) {
+    transform_ = transform; // met à jour la transformation du node
+}
+
+const glm::mat4& Node::get_transform() const {
+    return transform_; // retourne la transformation actuelle
+}

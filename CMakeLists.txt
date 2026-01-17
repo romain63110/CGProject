@@ -9,6 +9,7 @@ set(EXTERNAL_DIR external)
 set(GLEW_DIR ${EXTERNAL_DIR}/glew-cmake)
 set(GLFW_DIR ${EXTERNAL_DIR}/glfw)
 set(GLM_DIR ${EXTERNAL_DIR}/glm)
+set(JSBSIM_DIR ${EXTERNAL_DIR}/jsbsim)
 
 # Include directories
 include_directories(${INCLUDE_DIR})
@@ -33,7 +34,7 @@ set(SOURCES
     ${SRC_DIR}/skybox.cpp
 )
 
-# Define Shader director
+# Define Shader directory
 add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 
 # GLEW library
@@ -44,9 +45,15 @@ set(LIBS ${LIBS} libglew_static)
 add_subdirectory(${GLFW_DIR})
 set(LIBS ${LIBS} glfw)
 
-# GLM library
+# GLM library (header-only, mais ok)
 add_subdirectory(${GLM_DIR})
 
+# JSBSim library
+
+add_subdirectory(${JSBSIM_DIR})          
+include_directories(${JSBSIM_DIR}/src)   
+set(LIBS ${LIBS} jsbsim)               
+
 # Executable
-add_executable(opengl_program ${SOURCES})
+add_executable(opengl_program ${SOURCES} "src/aircraft_entity.cpp" "include/aircraft_entity.h" "include/aircraft_sim.h" "src/aircraft_sim.cpp")
 target_link_libraries(opengl_program ${LIBS})

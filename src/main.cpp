@@ -11,11 +11,15 @@
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
 #endif
+#include <aircraft_sim.h>
 
 int main()
 {
+
+    AircraftSim sim;
+    sim.init("data", "f15");
     // create window, add shaders & scene objects, then run rendering loop
-    Viewer viewer;
+    Viewer viewer(800, 600, &sim);
 
     // get shader directory
     std::string shader_dir = SHADER_DIR;
@@ -68,6 +72,16 @@ int main()
     
     cylinder1_node->add(cylinder1);
     sphere2_node->add(sphere2);
+
+    Shape* f15_shape = new Cylinder(phong_shader, 0.3f, 2.0f, 16);
+
+    glm::mat4 f15_mat = glm::mat4(1.0f);
+    Node* f15_node = new Node(f15_mat);
+
+    f15_node->add(f15_shape);
+    viewer.scene_root->add(f15_node);
+
+    viewer.setAircraftNode(f15_node); // on va ajouter cette fonction
 
     //viewer.scene_root->add(sphere2_node);
     viewer.scene_root->add(cylinder1);
