@@ -9,6 +9,7 @@ set(EXTERNAL_DIR external)
 set(GLEW_DIR ${EXTERNAL_DIR}/glew-cmake)
 set(GLFW_DIR ${EXTERNAL_DIR}/glfw)
 set(GLM_DIR ${EXTERNAL_DIR}/glm)
+set(JSBSIM_DIR ${EXTERNAL_DIR}/jsbsim)
 
 # Include directories
 include_directories(${INCLUDE_DIR})
@@ -46,6 +47,9 @@ set(LIBS ${LIBS} glfw)
 
 # GLM library
 add_subdirectory(${GLM_DIR})
+
+#JSBSIM lib
+add_subdirectory(${JSBSIM_DIR})
 
 # Executable
 add_executable(opengl_program ${SOURCES})
