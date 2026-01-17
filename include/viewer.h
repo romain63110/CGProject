@@ -36,6 +36,7 @@ private:
     double last_x_ = 0.0;
     double last_y_ = 0.0;
 
+    // FreeCam (optionnel)
     float yaw_ = -90.0f;
     float pitch_ = 0.0f;
 
@@ -51,10 +52,6 @@ private:
     float aircraft_speed_ = 6.0f;
 
     glm::quat aircraft_orient_ = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-
-    // Mouse control (applied to aircraft)
-    float mouse_dx_ = 0.0f;
-    float mouse_dy_ = 0.0f;
 };
 
 #endif

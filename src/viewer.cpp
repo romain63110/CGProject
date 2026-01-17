@@ -1,13 +1,10 @@
 #include "viewer.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-
 #include <iostream>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
 
 Viewer::Viewer(int width, int height)
 {
@@ -73,66 +70,31 @@ void Viewer::run()
 
         glfwPollEvents();
 
-        // ======================
-        // Aircraft axes (local)
-        // ======================
         glm::vec3 forward = aircraft_orient_ * glm::vec3(0, 0, -1);
         glm::vec3 right = aircraft_orient_ * glm::vec3(1, 0, 0);
         glm::vec3 up = aircraft_orient_ * glm::vec3(0, 1, 0);
 
-        // ======================
-        // Inputs
-        // ======================
         float pitchInput = 0.0f;
         float rollInput = 0.0f;
 
-   
-        if (glfwGetKey(win, GLFW_KEY_Z) == GLFW_PRESS) pitchInput += 1.0f;
-        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) pitchInput -= 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) pitchInput += 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) pitchInput -= 1.0f;
 
-        if (glfwGetKey(win, GLFW_KEY_Q) == GLFW_PRESS) rollInput -= 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) rollInput -= 1.0f;
         if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) rollInput += 1.0f;
 
-        // Mouse -> pitch + yaw (local)
-        float mousePitchInput = -mouse_dy_; // souris haut -> pitch up
-        float mouseYawInput = mouse_dx_; // souris droite -> yaw right
+        float pitch_rate = glm::radians(80.0f);
+        float roll_rate = glm::radians(140.0f);
 
-        mouse_dx_ = 0.0f;
-        mouse_dy_ = 0.0f;
-
-        // ======================
-        // Apply rotations locally (Quaternion)
-        // ======================
-        float pitch_rate = glm::radians(80.0f);   // rad/s
-        float roll_rate = glm::radians(140.0f);  // rad/s
-        float yaw_rate = glm::radians(90.0f);   // rad/s
-
-        // Pitch : around aircraft RIGHT axis
         glm::quat qPitch = glm::angleAxis(pitch_rate * pitchInput * dt, right);
-
-        // Roll : around aircraft FORWARD axis
         glm::quat qRoll = glm::angleAxis(roll_rate * rollInput * dt, forward);
 
-        // Yaw : around aircraft UP axis (mouse)
-        glm::quat qYaw = glm::angleAxis(yaw_rate * mouseYawInput * dt, up);
+        aircraft_orient_ = glm::normalize(qRoll * qPitch * aircraft_orient_);
 
-        // Mouse pitch : around aircraft RIGHT axis
-        glm::quat qMousePitch = glm::angleAxis(pitch_rate * mousePitchInput * dt, right);
-
-        // Combine rotations
-        aircraft_orient_ = glm::normalize(qYaw * qRoll * qMousePitch * qPitch * aircraft_orient_);
-
-        // Recompute forward after rotation
         forward = aircraft_orient_ * glm::vec3(0, 0, -1);
 
-        // ======================
-        // Move forward
-        // ======================
         aircraft_pos_ += forward * aircraft_speed_ * dt;
 
-        // ======================
-        // Apply transform to aircraft node
-        // ======================
         if (aircraft_node)
         {
             glm::mat4 T = glm::translate(glm::mat4(1.0f), aircraft_pos_);
@@ -140,9 +102,6 @@ void Viewer::run()
             aircraft_node->set_transform(T * R);
         }
 
-        // ======================
-        // Camera update
-        // ======================
         if (camera_mode_ == CameraMode::FreeCam)
         {
             float camSpeed = 3.0f;
@@ -164,15 +123,11 @@ void Viewer::run()
         }
         else
         {
-            // FollowCam behind aircraft
-            glm::vec3 camOffset = -forward * 10.0f + glm::vec3(0.0f, 3.5f, 0.0f);
+            glm::vec3 camOffset = -forward * 10.0f + glm::vec3(0.0f, 4.5f, 0.0f);
             camera_pos_ = aircraft_pos_ + camOffset;
             camera_front_ = glm::normalize(aircraft_pos_ - camera_pos_);
         }
 
-        // ======================
-        // Render
-        // ======================
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         int width, height;
@@ -256,6 +211,7 @@ void Viewer::on_mouse_button(int button, int action)
 void Viewer::on_mouse_move(double xpos, double ypos)
 {
     if (!mouse_captured_) return;
+    if (camera_mode_ != CameraMode::FreeCam) return;
 
     if (first_mouse_)
     {
@@ -269,27 +225,19 @@ void Viewer::on_mouse_move(double xpos, double ypos)
     last_x_ = xpos;
     last_y_ = ypos;
 
-    float sensitivity = 0.03f; // plus petit car on est en quaternions
+    float sensitivity = 0.1f;
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    // store mouse deltas (applied in run)
-    mouse_dx_ += (float)xoffset;
-    mouse_dy_ += (float)yoffset;
+    yaw_ += (float)xoffset;
+    pitch_ += (float)yoffset;
 
-    // update freecam direction if needed
-    if (camera_mode_ == CameraMode::FreeCam)
-    {
-        yaw_ += (float)(xoffset * 100.0f);
-        pitch_ += (float)(yoffset * 100.0f);
+    if (pitch_ > 89.0f)  pitch_ = 89.0f;
+    if (pitch_ < -89.0f) pitch_ = -89.0f;
 
-        if (pitch_ > 89.0f)  pitch_ = 89.0f;
-        if (pitch_ < -89.0f) pitch_ = -89.0f;
-
-        glm::vec3 front;
-        front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-        front.y = sin(glm::radians(pitch_));
-        front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-        camera_front_ = glm::normalize(front);
-    }
+    glm::vec3 front;
+    front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+    front.y = sin(glm::radians(pitch_));
+    front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+    camera_front_ = glm::normalize(front);
 }
