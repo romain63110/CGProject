@@ -13,6 +13,7 @@ void Node::set_transform(const glm::mat4& transform)
     transform_ = transform;
 }
 
+
 const glm::mat4& Node::get_transform() const
 {
     return transform_;
