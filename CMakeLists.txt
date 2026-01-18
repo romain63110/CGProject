@@ -8,11 +8,7 @@ set(EXTERNAL_DIR external)
 set(GLEW_DIR ${EXTERNAL_DIR}/glew-cmake)
 set(GLFW_DIR ${EXTERNAL_DIR}/glfw)
 set(GLM_DIR ${EXTERNAL_DIR}/glm)
-
-include_directories(${INCLUDE_DIR})
-include_directories(${GLEW_DIR}/include)
-include_directories(${GLFW_DIR}/include)
-include_directories(${GLM_DIR})
+set(IMGUI_DIR ${EXTERNAL_DIR}/imgui)
 
 set(SOURCES
     ${SRC_DIR}/main.cpp
@@ -30,15 +26,33 @@ set(SOURCES
     ${SRC_DIR}/skybox.cpp
 )
 
+set(IMGUI_SOURCES
+    ${IMGUI_DIR}/imgui.cpp
+    ${IMGUI_DIR}/imgui_draw.cpp
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_widgets.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
 add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 
 add_subdirectory(${GLEW_DIR})
-set(LIBS ${LIBS} libglew_static)
-
 add_subdirectory(${GLFW_DIR})
-set(LIBS ${LIBS} glfw)
-
 add_subdirectory(${GLM_DIR})
 
-add_executable(opengl_program ${SOURCES})
-target_link_libraries(opengl_program ${LIBS})
+add_executable(opengl_program ${SOURCES} ${IMGUI_SOURCES})
+
+target_include_directories(opengl_program PRIVATE
+    ${INCLUDE_DIR}
+    ${GLEW_DIR}/include
+    ${GLFW_DIR}/include
+    ${GLM_DIR}
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
+
+target_link_libraries(opengl_program PRIVATE
+    libglew_static
+    glfw
+)

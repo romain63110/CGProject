@@ -6,6 +6,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 Viewer::Viewer(int width, int height)
 {
     if (!glfwInit())
@@ -55,6 +59,12 @@ Viewer::Viewer(int width, int height)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(win, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
     scene_root = new Node();
 }
 
@@ -84,7 +94,7 @@ void Viewer::run()
         if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) rollInput += 1.0f;
 
         float pitch_rate = glm::radians(80.0f);
-        float roll_rate = glm::radians(140.0f);
+        float roll_rate = glm::radians(170.0f);
 
         glm::quat qPitch = glm::angleAxis(pitch_rate * pitchInput * dt, right);
         glm::quat qRoll = glm::angleAxis(roll_rate * rollInput * dt, forward);
@@ -128,6 +138,17 @@ void Viewer::run()
             camera_front_ = glm::normalize(aircraft_pos_ - camera_pos_);
         }
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Debug");
+        ImGui::Text("dt: %.4f", dt);
+        ImGui::Text("FPS: %.1f", (dt > 0.0f ? 1.0f / dt : 0.0f));
+        ImGui::Text("Aircraft Pos: %.2f %.2f %.2f", aircraft_pos_.x, aircraft_pos_.y, aircraft_pos_.z);
+        ImGui::Text("Speed: %.2f", aircraft_speed_);
+        ImGui::End();
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         int width, height;
@@ -142,8 +163,15 @@ void Viewer::run()
 
         scene_root->draw(model, view, projection);
 
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glfwSwapBuffers(win);
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
 }
