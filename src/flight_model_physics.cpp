@@ -30,7 +30,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
     ac.velocity += a * dt;
     ac.position += ac.velocity * dt;
 
-    float runwayLength = 80.0f;
+    float runwayLength = 400.0f;
     float runwayWidth = 12.0f;
     float halfL = runwayLength * 0.5f;
     float halfW = runwayWidth * 0.5f;
@@ -44,8 +44,6 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
         ac.position.y = 0.5f;
         if (ac.velocity.y < 0.0f) ac.velocity.y = 0.0f;
 
-        ac.velocity.x *= 0.99f;
-        ac.velocity.z *= 0.99f;
     }
 
     last_speed = glm::length(ac.velocity);
