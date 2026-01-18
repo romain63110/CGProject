@@ -4,10 +4,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-
 #include "node.h"
+
+#include "aircraft.h"
+#include "aircraft_controls.h"
+#include "flight_model_physics.h"
+#include "camera_controller.h"
 
 class Viewer {
 public:
@@ -20,7 +22,8 @@ public:
     void on_mouse_button(int button, int action);
 
     Node* scene_root;
-    Node* aircraft_node = nullptr;
+
+    Aircraft aircraft_;
 
 private:
     GLFWwindow* win;
@@ -33,25 +36,11 @@ private:
     bool mouse_captured_ = false;
     bool first_mouse_ = true;
 
-    double last_x_ = 0.0;
-    double last_y_ = 0.0;
+    AircraftControls controls_;
+    FlightModelPhysics flight_model_;
 
-    // FreeCam (optionnel)
-    float yaw_ = -90.0f;
-    float pitch_ = 0.0f;
-
-    glm::vec3 camera_pos_ = glm::vec3(0.0f, 0.0f, 3.0f);
-    glm::vec3 camera_front_ = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 camera_up_ = glm::vec3(0.0f, 1.0f, 0.0f);
-
-    enum class CameraMode { FreeCam, FollowAircraft };
-    CameraMode camera_mode_ = CameraMode::FollowAircraft;
-
-    // Aircraft state
-    glm::vec3 aircraft_pos_ = glm::vec3(0.0f, 0.0f, -5.0f);
-    float aircraft_speed_ = 6.0f;
-
-    glm::quat aircraft_orient_ = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    CameraState camera_;
+    CameraController camera_ctrl_;
 };
 
 #endif

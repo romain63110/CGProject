@@ -100,7 +100,7 @@ int main()
 
     // Attacher l'avion à la scène
     viewer.scene_root->add(aircraftNode);
-    viewer.aircraft_node = aircraftNode;
+    viewer.aircraft_.node = aircraftNode;
 
     viewer.run();
 }
