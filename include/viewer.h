@@ -33,11 +33,6 @@ private:
     static void mouse_button_callback_static(GLFWwindow* window, int button, int action, int mods);
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-    bool mouse_captured_ = false;
-    bool first_mouse_ = true;
-
-    glm::vec3 prev_velocity_ = glm::vec3(0.0f);
-
     AircraftControls controls_;
     FlightModelPhysics flight_model_;
 

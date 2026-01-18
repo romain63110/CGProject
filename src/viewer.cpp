@@ -74,9 +74,6 @@ void Viewer::run()
 
         controls_.resetAxis();
 
-        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) controls_.elevator += 1.0f;
-        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) controls_.elevator -= 1.0f;
-
         if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) controls_.aileron -= 1.0f;
         if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) controls_.aileron += 1.0f;
 
@@ -98,34 +95,14 @@ void Viewer::run()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Flight Debug");
+        ImGui::Begin("Debug");
         ImGui::Text("FPS: %.1f", (dt > 0.0f ? 1.0f / dt : 0.0f));
         ImGui::Text("Throttle: %.2f", controls_.throttle);
-        ImGui::Text("Speed: %.2f km/h", flight_model_.last_speed*3.6);
-        ImGui::Text("Mach: %.2f km/h", flight_model_.last_speed * 3.6/1200);
-        if (dt < 0.00001f) dt = 0.00001f;
-
-        glm::vec3 accel = (aircraft_.velocity - prev_velocity_) / dt;
-        prev_velocity_ = aircraft_.velocity;
-
-        ImGui::Text("Vel: %.2f %.2f %.2f", aircraft_.velocity.x, aircraft_.velocity.y, aircraft_.velocity.z);
-        ImGui::Text("Speed: %.2f", glm::length(aircraft_.velocity));
-        ImGui::Text("Accel: %.2f %.2f %.2f", accel.x, accel.y, accel.z);
-        ImGui::Text("Accel mag: %.2f", glm::length(accel));
-
-        /*
-        ImGui::Text("Alpha: %.2f deg", glm::degrees(flight_model_.last_alpha));
-        ImGui::Text("CL: %.2f", flight_model_.last_CL);
-        ImGui::Text("CD: %.3f", flight_model_.last_CD);
-        ImGui::Text("Lift: %.1f N", flight_model_.last_L);
-        ImGui::Text("Drag: %.1f N", flight_model_.last_D);
+        ImGui::Text("Speed: %.2f km/h", flight_model_.last_speed * 3.6);
+        ImGui::Text("Mach: %.2f", flight_model_.last_speed * 3.6 / 1200);
+        ImGui::SliderFloat("Drag k", &flight_model_.drag_k, 0.0f, 2.0f);
         ImGui::SliderFloat("Tmax", &flight_model_.Tmax, 0.0f, 40000.0f);
-        ImGui::SliderFloat("Mass", &flight_model_.mass, 200.0f, 20000.0f);
-        */
         ImGui::End();
-
-
-
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -179,20 +156,20 @@ void Viewer::framebuffer_size_callback(GLFWwindow* window, int width, int height
 
 void Viewer::on_key(int key, int action)
 {
-    if (key == GLFW_KEY_TAB)
-    {
-        mouse_captured_ = !mouse_captured_;
-        first_mouse_ = true;
-
-        glfwSetInputMode(win, GLFW_CURSOR,
-            mouse_captured_ ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-    }
-
     if (action != GLFW_PRESS)
         return;
 
     if (key == GLFW_KEY_C)
         camera_ctrl_.toggleMode();
+
+    if (key == GLFW_KEY_TAB)
+    {
+        camera_ctrl_.mouse_captured = !camera_ctrl_.mouse_captured;
+        camera_ctrl_.first_mouse = true;
+
+        glfwSetInputMode(win, GLFW_CURSOR,
+            camera_ctrl_.mouse_captured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    }
 
     if (key == GLFW_KEY_ESCAPE)
         glfwSetWindowShouldClose(win, GLFW_TRUE);
@@ -202,6 +179,9 @@ void Viewer::on_mouse_button(int button, int action)
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse) return;
+
         camera_ctrl_.mouse_captured = true;
         camera_ctrl_.first_mouse = true;
         glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

@@ -7,6 +7,8 @@
 #include "shader.h"
 #include "skybox.h"
 #include "triangle.h"
+#include "runway.h"
+
 
 #include <string>
 
@@ -40,7 +42,12 @@ int main()
 
     Shader* phong_shader = new Shader(shader_dir + "phong.vert", shader_dir + "phong.frag");
 
-    // petite sphere de test (optionnelle)
+    Runway* runway = new Runway(phong_shader, 80.0f, 12.0f);
+    Node* runwayNode = new Node(glm::mat4(1.0f));
+    runwayNode->add(runway);
+    viewer.scene_root->add(runwayNode);
+
+
     Shape* sphere2 = new LightingSphere(
         phong_shader,
         glm::vec3(0.0f, 1.0f, 0.0f),
@@ -51,9 +58,6 @@ int main()
     sphere2_node->add(sphere2);
     viewer.scene_root->add(sphere2_node);
 
-    // ---------------------------
-    // Aircraft (fuselage + delta wings)
-    // ---------------------------
     Shape* fuselage = new Cylinder(phong_shader, 2.f, 0.5f, 16);
 
     Node* aircraftNode = new Node(glm::mat4(1.0f));
@@ -69,12 +73,6 @@ int main()
     float wingZOffset = 0.0f;    // position le long du fuselage
     float wingYOffset = 0.0f;    // hauteur (0 = au milieu)
 
-    // BUT: une arête du triangle // au fuselage
-    // - le triangle est défini dans le plan XY, avec sa base alignée sur X.
-    // - on le met à plat: Rx(+90°) => plan XZ
-    // - on aligne la base (X) sur la longueur (Z) du fuselage: Ry(±90°)
-
-    // Aile droite (pointe vers +X)
     glm::mat4 wingR_mat =
         glm::translate(glm::mat4(1.0f), glm::vec3(+wingXOffset, wingYOffset, wingZOffset)) *
         glm::rotate(glm::mat4(1.0f), glm::radians(+90.0f), glm::vec3(0, 1, 0)) * // base -> Z
@@ -90,6 +88,25 @@ int main()
         glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * // base -> Z
         glm::rotate(glm::mat4(1.0f), glm::radians(+90.0f), glm::vec3(1, 0, 0)) * // à plat
         glm::scale(glm::mat4(1.0f), wingScale);
+
+    Shape* tail = new Triangle(phong_shader);
+
+    glm::vec3 tailScale(0.9f, 0.9f, 1.0f);
+
+    float tailZOffset = +1.6f;
+    float tailYOffset = +0.55f;
+
+    glm::mat4 tail_mat =
+        glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, tailYOffset, tailZOffset)) *
+        glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0, 1, 0)) *
+        glm::scale(glm::mat4(1.0f), tailScale);
+
+    Node* tail_node = new Node(tail_mat);
+    tail_node->add(tail);
+
+    aircraftNode->add(tail_node);
+
+
 
     Node* wingL_node = new Node(wingL_mat);
     wingL_node->add(wingL);

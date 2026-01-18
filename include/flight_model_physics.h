@@ -8,7 +8,6 @@ public:
     float mass = 1200.0f;
     float Tmax = 15000.0f;
 
-    float pitch_rate_deg = 80.0f;
     float roll_rate_deg = 170.0f;
 
     float drag_k = 0.25f;
