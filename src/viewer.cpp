@@ -103,6 +103,16 @@ void Viewer::run()
         ImGui::Text("Throttle: %.2f", controls_.throttle);
         ImGui::Text("Speed: %.2f km/h", flight_model_.last_speed*3.6);
         ImGui::Text("Mach: %.2f km/h", flight_model_.last_speed * 3.6/1200);
+        if (dt < 0.00001f) dt = 0.00001f;
+
+        glm::vec3 accel = (aircraft_.velocity - prev_velocity_) / dt;
+        prev_velocity_ = aircraft_.velocity;
+
+        ImGui::Text("Vel: %.2f %.2f %.2f", aircraft_.velocity.x, aircraft_.velocity.y, aircraft_.velocity.z);
+        ImGui::Text("Speed: %.2f", glm::length(aircraft_.velocity));
+        ImGui::Text("Accel: %.2f %.2f %.2f", accel.x, accel.y, accel.z);
+        ImGui::Text("Accel mag: %.2f", glm::length(accel));
+
         /*
         ImGui::Text("Alpha: %.2f deg", glm::degrees(flight_model_.last_alpha));
         ImGui::Text("CL: %.2f", flight_model_.last_CL);
@@ -113,6 +123,9 @@ void Viewer::run()
         ImGui::SliderFloat("Mass", &flight_model_.mass, 200.0f, 20000.0f);
         */
         ImGui::End();
+
+
+
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

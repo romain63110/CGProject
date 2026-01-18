@@ -36,6 +36,8 @@ private:
     bool mouse_captured_ = false;
     bool first_mouse_ = true;
 
+    glm::vec3 prev_velocity_ = glm::vec3(0.0f);
+
     AircraftControls controls_;
     FlightModelPhysics flight_model_;
 
