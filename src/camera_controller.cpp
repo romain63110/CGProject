@@ -33,14 +33,27 @@ void CameraController::updateFreeCamKeys(void* glfwWindow, float dt, CameraState
         cam.pos += camRight * move;
 }
 
-void CameraController::updateFollowCam(const Aircraft& ac, CameraState& cam)
+void CameraController::updateFollowCam(const Aircraft& ac, float dt, CameraState& cam)
 {
     glm::vec3 forward = ac.orientation * glm::vec3(0, 0, -1);
     glm::vec3 offset = -forward * 12.0f + glm::vec3(0.0f, 5.0f, 0.0f);
 
     cam.pos = ac.position + offset;
     cam.front = glm::normalize(ac.position - cam.pos);
+
+    float speed = glm::length(ac.velocity);
+
+    float t = (speed - fovSpeedMin) / (fovSpeedMax - fovSpeedMin);
+    t = glm::clamp(t, 0.0f, 1.0f);
+
+    t = t * t * (3.0f - 2.0f * t);
+
+    float targetFov = fovBase + (fovMax - fovBase) * t;
+
+    currentFov += (targetFov - currentFov) * (1.0f - std::exp(-fovSmooth * dt));
+    cam.fov = currentFov;
 }
+
 
 void CameraController::onMouseMove(double xpos, double ypos, CameraState& cam)
 {

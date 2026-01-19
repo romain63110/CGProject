@@ -92,7 +92,8 @@ void Viewer::run()
         if (camera_ctrl_.mode == CameraController::Mode::FreeCam)
             camera_ctrl_.updateFreeCamKeys(win, dt, camera_);
         else
-            camera_ctrl_.updateFollowCam(aircraft_, camera_);
+            camera_ctrl_.updateFollowCam(aircraft_, dt, camera_);
+
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -168,7 +169,8 @@ void Viewer::run()
 
         float aspect_ratio = (float)width / (float)height;
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 5000.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera_.fov), aspect_ratio, 0.1f, 5000.0f);
+
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::lookAt(camera_.pos, camera_.pos + camera_.front, camera_.up);
 

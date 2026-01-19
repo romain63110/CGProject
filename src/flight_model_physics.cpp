@@ -50,6 +50,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
 {
     if (dt <= 0.0f) return;
 
+    // ========= Local velocity =========
     glm::vec3 v_world = ac.velocity;
     float speed = glm::length(v_world);
 
@@ -59,6 +60,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
 
     dbg_v_local = v_local;
 
+    // ========= Steering power =========
     float speedTotal = glm::length(v_local);
     float steeringPower = clampf(speedTotal / steerSpeedRef, 0.0f, 1.0f);
 
@@ -68,6 +70,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
     float rollAccel = glm::radians(roll_accel_deg) * steeringPower;
     float pitchAccel = glm::radians(pitch_accel_deg) * steeringPower;
 
+    // ========= AoA (stable) =========
     float vz = -v_local.z;
     float vy = v_local.y;
 
@@ -78,10 +81,12 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
 
     float stallAngle = glm::radians(stallAngleDeg);
 
+    // ========= Target angular velocity (body) =========
     glm::vec3 targetOmegaBody(0.0f);
-    targetOmegaBody.x = u.elevator * pitchRate;
-    targetOmegaBody.z = -u.aileron * rollRate;
+    targetOmegaBody.x = u.elevator * pitchRate; // pitch
+    targetOmegaBody.z = -u.aileron * rollRate; // roll
 
+    // ========= Stall nose drop (pitch) =========
     if (std::abs(alpha) > stallAngle)
     {
         float extra = (std::abs(alpha) - stallAngle);
@@ -89,9 +94,56 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
         targetOmegaBody.x -= s * (stallNoseDrop * extra);
     }
 
+    // ========= Auto roll level (upright only, gentle) =========
+    {
+        // Up avion en monde
+        glm::vec3 up_world = ac.orientation * glm::vec3(0, 1, 0);
+
+        // Axe forward en monde (sert à savoir "roll gauche/droite")
+        glm::vec3 forward_world = ac.orientation * glm::vec3(0, 0, -1);
+
+        // Si up_world.y < 0 => avion upside down -> on force la correction vers l'endroit
+        // erreur de roll signée autour de l'axe forward :
+        // cross(up, worldUp) donne l'axe de rotation pour réaligner, puis on projette sur forward
+        glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+        glm::vec3 corrAxis = glm::cross(up_world, worldUp);
+
+        // erreur signée (positif ou négatif) selon si ça doit rouler à gauche ou droite
+        float rollError = glm::dot(corrAxis, forward_world);
+
+        // Réglages : on ne touche pas au rollRate manuel !
+        float rollLevelStrength = 0.6f;            // force très faible
+        float rollDamping = 1.8f;                  // amortissement
+        float bankDeadZone = glm::radians(8.0f);   // < 8° => pas de correction
+        float maxAutoRollRate = glm::radians(10.0f); // auto très doux
+
+        // On convertit rollError en "angle" approximatif (petits angles)
+        // Si proche de l'endroit, rollError ~ sin(angle) ~ angle
+        float approxBank = rollError;
+
+        // Deadzone : si inclinaison très faible, ne corrige pas (évite micro wobble)
+        if (std::abs(approxBank) < bankDeadZone)
+            approxBank = 0.0f;
+
+        // Auto-level uniquement si pas d'input aileron
+        float inputAmount = std::abs(u.aileron);
+        float autoAmount = 1.0f - clampf(inputAmount, 0.0f, 1.0f);
+
+        float autoRollCmd = (-approxBank * rollLevelStrength) + (-ac.omega_body.z * rollDamping);
+
+        // clamp auto seulement (ne pas limiter le roll manuel !)
+        autoRollCmd = clampf(autoRollCmd, -maxAutoRollRate, maxAutoRollRate);
+
+        targetOmegaBody.z += autoRollCmd * autoAmount;
+    }
+
+
+
+    // ========= Apply acceleration-limited correction =========
     ac.omega_body.x += clampStep(dt, ac.omega_body.x, targetOmegaBody.x, pitchAccel);
     ac.omega_body.z += clampStep(dt, ac.omega_body.z, targetOmegaBody.z, rollAccel);
 
+    // ========= Integrate orientation =========
     glm::vec3 omega_world = ac.orientation * ac.omega_body;
     float omegaMag = glm::length(omega_world);
     if (omegaMag > 1e-6f)
@@ -102,9 +154,11 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
         ac.orientation = glm::normalize(dq * ac.orientation);
     }
 
+    // ========= Thrust =========
     glm::vec3 forward = ac.orientation * glm::vec3(0, 0, -1);
     glm::vec3 Ft = forward * (u.throttle * Tmax);
 
+    // ========= Drag =========
     v_world = ac.velocity;
     speed = glm::length(v_world);
 
@@ -125,6 +179,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
         Fd_world = ac.orientation * Fd_local;
     }
 
+    // ========= Lift + Induced drag =========
     glm::vec3 FL(0.0f);
     glm::vec3 FDi(0.0f);
 
@@ -174,14 +229,17 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
         last_D = glm::length(FDi);
     }
 
+    // ========= Gravity =========
     glm::vec3 Fg(0.0f, -mass * 9.81f, 0.0f);
 
+    // ========= Integrate velocity / position =========
     glm::vec3 Fsum = Ft + Fd_world + Fg + FL + FDi;
     glm::vec3 a = Fsum / mass;
 
     ac.velocity += a * dt;
     ac.position += ac.velocity * dt;
 
+    // ========= Simple runway collision =========
     float runwayLength = 4000.0f;
     float runwayWidth = 12.0f;
     float halfL = runwayLength * 0.5f;
@@ -197,6 +255,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
         if (ac.velocity.y < 0.0f) ac.velocity.y = 0.0f;
     }
 
+    // ========= Debug =========
     last_speed = glm::length(ac.velocity);
 
     dbg_Fg = Fg;
