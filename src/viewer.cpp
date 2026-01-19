@@ -80,8 +80,8 @@ void Viewer::run()
         if (glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS) controls_.throttle += 0.6f * dt;
         if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) controls_.throttle -= 0.6f * dt;
 
-        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) controls_.elevator += 1.0f;
-        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) controls_.elevator -= 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) controls_.elevator += 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) controls_.elevator -= 1.0f;
 
         if (controls_.throttle < 0.0f) controls_.throttle = 0.0f;
         if (controls_.throttle > 1.0f) controls_.throttle = 1.0f;
