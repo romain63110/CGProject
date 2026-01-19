@@ -61,8 +61,6 @@ int main()
 
     Node* aircraftNode = new Node(glm::mat4(1.0f));
 
-
-    // (Optionnel) si orientation mauvaise, décommente un fix rotation :
     
     // fix = glm::rotate(fix, glm::radians(-90.0f), glm::vec3(1,0,0)); // Z-up -> Y-up
 

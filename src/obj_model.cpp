@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
+#include <string>
 
 #include <glm/glm.hpp>
 
@@ -11,6 +13,61 @@ struct VertexPN
     glm::vec3 pos;
     glm::vec3 normal;
 };
+
+// Petit struct interne pour stocker les indices d’un vertex de face
+struct FaceIndex
+{
+    int v = 0;   // index position
+    int vt = 0;  // index texcoord (optionnel)
+    int vn = 0;  // index normal (optionnel)
+};
+
+// Parse un token OBJ (ex: "3", "3//2", "3/4", "3/4/2")
+static FaceIndex parseFaceToken(const std::string& token)
+{
+    FaceIndex idx;
+
+    // Cas simple : "v"
+    size_t p1 = token.find('/');
+    if (p1 == std::string::npos)
+    {
+        idx.v = std::stoi(token);
+        return idx;
+    }
+
+    // Sinon on a au moins "v/..."
+    std::string sV = token.substr(0, p1);
+    idx.v = !sV.empty() ? std::stoi(sV) : 0;
+
+    size_t p2 = token.find('/', p1 + 1);
+
+    // Cas "v/vt" (un seul slash)
+    if (p2 == std::string::npos)
+    {
+        std::string sVT = token.substr(p1 + 1);
+        idx.vt = !sVT.empty() ? std::stoi(sVT) : 0;
+        return idx;
+    }
+
+    // Cas "v//vn" ou "v/vt/vn"
+    std::string sVT = token.substr(p1 + 1, p2 - p1 - 1);
+    std::string sVN = token.substr(p2 + 1);
+
+    idx.vt = !sVT.empty() ? std::stoi(sVT) : 0;
+    idx.vn = !sVN.empty() ? std::stoi(sVN) : 0;
+
+    return idx;
+}
+
+// Convertit index OBJ vers index C++ (OBJ commence à 1, et accepte les négatifs)
+static int fixObjIndex(int idx, int size)
+{
+    if (idx > 0)
+        return idx - 1; // OBJ 1-based
+    if (idx < 0)
+        return size + idx; // ex: -1 => dernier élément
+    return -1;
+}
 
 ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
     : Shape(shader_program)
@@ -29,6 +86,10 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
     std::string line;
     while (std::getline(file, line))
     {
+        // ignore lignes vides et commentaires
+        if (line.empty() || line[0] == '#')
+            continue;
+
         std::istringstream iss(line);
         std::string type;
         iss >> type;
@@ -47,45 +108,49 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
         }
         else if (type == "f")
         {
-            // on lit 3 sommets (triangles)
-            for (int i = 0; i < 3; i++)
+            // Lire TOUS les tokens de la face
+            std::vector<FaceIndex> face;
+            std::string token;
+
+            while (iss >> token)
             {
-                std::string token;
-                iss >> token;
+                FaceIndex fi = parseFaceToken(token);
+                face.push_back(fi);
+            }
 
-                int vIndex = 0, vtIndex = 0, vnIndex = 0;
+            // Une face doit avoir au moins 3 sommets
+            if ((int)face.size() < 3)
+                continue;
 
-                // token = "v//vn" ou "v/vt/vn" ou "v/vt"
-                size_t p1 = token.find('/');
-                size_t p2 = token.find('/', p1 + 1);
+            // Triangulation en fan :
+            // (0,1,2) (0,2,3) (0,3,4) ...
+            for (int i = 1; i < (int)face.size() - 1; i++)
+            {
+                FaceIndex f0 = face[0];
+                FaceIndex f1 = face[i];
+                FaceIndex f2 = face[i + 1];
 
-                if (p1 == std::string::npos)
+                FaceIndex tri[3] = { f0, f1, f2 };
+
+                for (int k = 0; k < 3; k++)
                 {
-                    vIndex = std::stoi(token);
-                }
-                else
-                {
-                    vIndex = std::stoi(token.substr(0, p1));
+                    int vIndex = fixObjIndex(tri[k].v, (int)positions.size());
+                    int vnIndex = fixObjIndex(tri[k].vn, (int)normals.size());
 
-                    if (p2 != std::string::npos)
+                    if (vIndex < 0 || vIndex >= (int)positions.size())
                     {
-                        std::string between = token.substr(p1 + 1, p2 - p1 - 1);
-                        std::string after = token.substr(p2 + 1);
-
-                        if (!between.empty())
-                            vtIndex = std::stoi(between);
-
-                        if (!after.empty())
-                            vnIndex = std::stoi(after);
+                        // mauvais fichier ou parsing -> on skip
+                        continue;
                     }
+
+                    glm::vec3 pos = positions[vIndex];
+
+                    glm::vec3 nrm = glm::vec3(0, 1, 0);
+                    if (vnIndex >= 0 && vnIndex < (int)normals.size())
+                        nrm = normals[vnIndex];
+
+                    vertices.push_back({ pos, nrm });
                 }
-
-                glm::vec3 pos = positions[vIndex - 1];
-                glm::vec3 nrm = (vnIndex > 0 && vnIndex <= (int)normals.size())
-                    ? normals[vnIndex - 1]
-                    : glm::vec3(0, 1, 0);
-
-                vertices.push_back({ pos, nrm });
             }
         }
     }
@@ -135,4 +200,5 @@ void ObjModel::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection)
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    glBindVertexArray(0);
 }
