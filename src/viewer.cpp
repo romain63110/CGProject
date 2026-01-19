@@ -80,6 +80,9 @@ void Viewer::run()
         if (glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS) controls_.throttle += 0.6f * dt;
         if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) controls_.throttle -= 0.6f * dt;
 
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) controls_.elevator += 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) controls_.elevator -= 1.0f;
+
         if (controls_.throttle < 0.0f) controls_.throttle = 0.0f;
         if (controls_.throttle > 1.0f) controls_.throttle = 1.0f;
 
@@ -96,12 +99,65 @@ void Viewer::run()
         ImGui::NewFrame();
 
         ImGui::Begin("Debug");
+
         ImGui::Text("FPS: %.1f", (dt > 0.0f ? 1.0f / dt : 0.0f));
+        ImGui::Separator();
+
         ImGui::Text("Throttle: %.2f", controls_.throttle);
-        ImGui::Text("Speed: %.2f km/h", flight_model_.last_speed * 3.6);
-        ImGui::Text("Mach: %.2f", flight_model_.last_speed * 3.6 / 1200);
-        ImGui::SliderFloat("Drag k", &flight_model_.drag_k, 0.0f, 2.0f);
+        ImGui::Text("Speed: %.2f km/h", flight_model_.last_speed * 3.6f);
+        ImGui::Text("Mach: %.2f", (flight_model_.last_speed * 3.6f) / 1200.0f);
+
+        ImGui::Text("AoA: %.2f deg", flight_model_.alpha_deg);
+        ImGui::Text("CL: %.3f", flight_model_.last_CL);
+        ImGui::Text("Lift: %.1f N", flight_model_.last_L);
+        ImGui::SliderFloat("LiftPower", &flight_model_.liftPower, 0.0f, 10.0f);
+
+
+        ImGui::Separator();
+
+        ImGui::Text("V world : (%.2f, %.2f, %.2f)",
+            flight_model_.dbg_v_world.x,
+            flight_model_.dbg_v_world.y,
+            flight_model_.dbg_v_world.z);
+
+        ImGui::Text("V local : (%.2f, %.2f, %.2f)",
+            flight_model_.dbg_v_local.x,
+            flight_model_.dbg_v_local.y,
+            flight_model_.dbg_v_local.z);
+
+        ImGui::Separator();
+
+        ImGui::Text("Ft: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Ft.x, flight_model_.dbg_Ft.y, flight_model_.dbg_Ft.z);
+
+        ImGui::Text("Fd: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Fd.x, flight_model_.dbg_Fd.y, flight_model_.dbg_Fd.z);
+
+        ImGui::Text("FL: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_FL.x, flight_model_.dbg_FL.y, flight_model_.dbg_FL.z);
+
+        ImGui::Text("Fg: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Fg.x, flight_model_.dbg_Fg.y, flight_model_.dbg_Fg.z);
+
+        ImGui::Text("SumF: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Fsum.x, flight_model_.dbg_Fsum.y, flight_model_.dbg_Fsum.z);
+
+        ImGui::Separator();
+
         ImGui::SliderFloat("Tmax", &flight_model_.Tmax, 0.0f, 40000.0f);
+        ImGui::SliderFloat("WingArea", &flight_model_.wingArea, 1.0f, 60.0f);
+        ImGui::SliderFloat("AirDensity rho", &flight_model_.rho, 0.2f, 2.0f);
+
+        ImGui::Separator();
+        ImGui::Text("Directional Drag");
+
+        ImGui::SliderFloat("dragForward", &flight_model_.dragForward, 0.0f, 5.0f);
+        ImGui::SliderFloat("dragBack", &flight_model_.dragBack, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragRight", &flight_model_.dragRight, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragLeft", &flight_model_.dragLeft, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragUp", &flight_model_.dragUp, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragDown", &flight_model_.dragDown, 0.0f, 10.0f);
+
         ImGui::End();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

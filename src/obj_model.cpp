@@ -113,8 +113,6 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), (void*)offsetof(VertexPN, normal));
 
     glBindVertexArray(0);
-
-    std::cout << "[ObjModel] Loaded " << vertexCount << " vertices from " << objPath << "\n";
 }
 
 ObjModel::~ObjModel()
@@ -137,6 +135,4 @@ void ObjModel::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection)
 
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertexCount);
-
-    std::cout << "[ObjModel] Loaded " << vertexCount << " vertices\n";
 }
