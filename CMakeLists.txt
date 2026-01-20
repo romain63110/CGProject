@@ -41,7 +41,7 @@ add_subdirectory(${GLEW_DIR})
 add_subdirectory(${GLFW_DIR})
 add_subdirectory(${GLM_DIR})
 
-add_executable(opengl_program ${SOURCES} ${IMGUI_SOURCES} "include/aircraft.h" "src/aircraft.cpp" "include/aircraft_controls.h" "src/aircraft_controls.cpp" "include/flight_model_physics.h" "src/flight_model_physics.cpp" "include/camera_controller.h" "src/camera_controller.cpp" "include/runway.h" "src/runway.cpp" "include/obj_model.h" "src/obj_model.cpp")
+add_executable(opengl_program ${SOURCES} ${IMGUI_SOURCES} "include/aircraft.h" "src/aircraft.cpp" "include/aircraft_controls.h" "src/aircraft_controls.cpp" "include/flight_model_physics.h" "src/flight_model_physics.cpp" "include/camera_controller.h" "src/camera_controller.cpp" "include/runway.h" "src/runway.cpp" "include/obj_model.h" "src/obj_model.cpp"   "include/afterburner_flame.h" "src/afterburner_flame.cpp")
 
 target_include_directories(opengl_program PRIVATE
     ${INCLUDE_DIR}

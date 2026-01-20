@@ -8,6 +8,8 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include "afterburner_flame.h"
+
 
 Viewer::Viewer(int width, int height)
 {
@@ -94,6 +96,33 @@ void Viewer::run()
         else
             camera_ctrl_.updateFollowCam(aircraft_, dt, camera_);
 
+
+        float t = (float)glfwGetTime();
+
+        if (afterburnerL_)
+        {
+            afterburnerL_->timeSec = t;
+            afterburnerL_->intensity = 1.0f;
+        }
+
+        if (afterburnerR_)
+        {
+            afterburnerR_->timeSec = t;
+            afterburnerR_->intensity = 1.0f;
+        }
+
+
+        /*if (afterburner_)
+        {
+            afterburner_->timeSec = (float)glfwGetTime();
+
+            float ab = 0.0f;
+            if (controls_.throttle > 0.85f)
+                ab = (controls_.throttle - 0.85f) / 0.15f;
+
+            afterburner_->intensity = ab;
+        }
+        */
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();

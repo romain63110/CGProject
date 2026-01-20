@@ -11,11 +11,17 @@
 #include "flight_model_physics.h"
 #include "camera_controller.h"
 
+class AfterburnerFlame;
+
 class Viewer {
 public:
     Viewer(int width = 640, int height = 480);
 
     void run();
+
+    AfterburnerFlame* afterburnerL_ = nullptr;
+    AfterburnerFlame* afterburnerR_ = nullptr;
+
 
     void on_key(int key, int action);
     void on_mouse_move(double xpos, double ypos);

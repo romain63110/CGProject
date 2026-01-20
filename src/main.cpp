@@ -9,6 +9,8 @@
 #include "triangle.h"
 #include "runway.h"
 #include "obj_model.h"   
+#include "afterburner_flame.h"
+
 
 #include <string>
 
@@ -62,6 +64,43 @@ int main()
     Node* aircraftNode = new Node(glm::mat4(1.0f));
 
     
+    Shader* abShader = new Shader(shader_dir + "afterburner.vert",
+        shader_dir + "afterburner.frag");
+
+    // ---------- moteur gauche ----------
+    glm::mat4 abL = glm::mat4(1.0f);
+
+    abL = glm::rotate(abL, glm::radians(180.0f), glm::vec3(0, 1, 0));
+    abL = glm::rotate(abL, glm::radians(2.0f), glm::vec3(-1, 0, 0));
+    abL = glm::scale(abL, glm::vec3(0.08f, 0.08f, 10.f));
+    abL = glm::translate(abL, glm::vec3(-0.09f, 0.2f, -1.1f));   // X = gauche
+
+    Node* afterburnerNodeL = new Node(abL);
+    AfterburnerFlame* flameL = new AfterburnerFlame(abShader, 24);
+    flameL->color = glm::vec3(1.0f, 0.1f, 0.05f); // rouge
+    afterburnerNodeL->add(flameL);
+
+
+    // ---------- moteur droit ----------
+    glm::mat4 abR = glm::mat4(1.0f);
+   
+    abR = glm::rotate(abR, glm::radians(180.0f), glm::vec3(0, 1, 0));
+    abR = glm::rotate(abR, glm::radians(2.0f), glm::vec3(-1, 0, 0));
+    abR = glm::scale(abR, glm::vec3(0.08f, 0.08f, 10.f));
+    abR = glm::translate(abR, glm::vec3(+0.1f, 0.26f, 1.f));
+
+    Node* afterburnerNodeR = new Node(abR);
+
+    AfterburnerFlame* flameR = new AfterburnerFlame(abShader, 24);
+    flameR->color = glm::vec3(1.0f, 0.1f, 0.05f); 
+    afterburnerNodeR->add(flameR);
+
+    // dans viewer : stocker les 2 pointeurs
+    viewer.afterburnerL_ = flameL;
+    viewer.afterburnerR_ = flameR;
+
+
+
     // fix = glm::rotate(fix, glm::radians(-90.0f), glm::vec3(1,0,0)); // Z-up -> Y-up
 
     glm::mat4 fix = glm::mat4(1.0f);
@@ -74,6 +113,8 @@ int main()
     planeMeshNode->add(planeMesh);
 
     aircraftNode->add(planeMeshNode);
+    aircraftNode->add(afterburnerNodeL);
+    aircraftNode->add(afterburnerNodeR);
 
     // Attacher l'avion à la scène
     viewer.scene_root->add(aircraftNode);
