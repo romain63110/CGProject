@@ -99,30 +99,22 @@ void Viewer::run()
 
         float t = (float)glfwGetTime();
 
+        float ab = 0.0f;
+        if (controls_.throttle > 0.9f)
+            ab = (controls_.throttle - 0.9f) / 0.1f; 
+
         if (afterburnerL_)
         {
             afterburnerL_->timeSec = t;
-            afterburnerL_->intensity = 1.0f;
+            afterburnerL_->intensity = ab;
         }
 
         if (afterburnerR_)
         {
             afterburnerR_->timeSec = t;
-            afterburnerR_->intensity = 1.0f;
+            afterburnerR_->intensity = ab;
         }
 
-
-        /*if (afterburner_)
-        {
-            afterburner_->timeSec = (float)glfwGetTime();
-
-            float ab = 0.0f;
-            if (controls_.throttle > 0.85f)
-                ab = (controls_.throttle - 0.85f) / 0.15f;
-
-            afterburner_->intensity = ab;
-        }
-        */
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
