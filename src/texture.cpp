@@ -96,6 +96,9 @@ Texture::Texture(const std::vector<std::string>& faces, GLenum wrap_mode, GLenum
 
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         stbi_image_free(data);
+
+        std::cout << "Loaded texture " << faces[i] << " (" << width << "x" << height << ", "
+            << wrap_mode << ", " << min_filter << ", " << mag_filter << ")" << std::endl;
         
     }
 
@@ -111,3 +114,7 @@ Texture::~Texture() {
     glDeleteTextures(1, &glid_);
 }
 
+void Texture::bind(int unit) {
+    glActiveTexture(GL_TEXTURE0 + unit); // Enable slot [unit]
+    glBindTexture(target_, glid_);       // Bind tex to the slot [unit]
+}

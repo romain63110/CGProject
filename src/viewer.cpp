@@ -79,7 +79,7 @@ void Viewer::run()
         if (height == 0) height = 1;
         float aspect_ratio = (float)width / (float)height;
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 256.0f);
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::lookAt(camera_pos_, camera_pos_ + camera_front_, camera_up_);
 

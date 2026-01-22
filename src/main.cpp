@@ -1,6 +1,4 @@
 #include "viewer.h"
-#include "textured_sphere.h"
-#include "lighting_sphere.h"
 #include "texture.h"
 #include "node.h"
 #include "shader.h"
@@ -10,6 +8,7 @@
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
 #endif
+#include <terrain.h>
 
 int main()
 {
@@ -18,7 +17,7 @@ int main()
 
     // get shader directory
     std::string shader_dir = SHADER_DIR;
-    std::string texture_dir = "../../../textures/";
+    std::string texture_dir = "../../../textures/"; //TODO: TEXTURE_DIR
 
     // Chemins vers vos 6 images
     std::vector<std::string> faces = {
@@ -40,30 +39,13 @@ int main()
     skyNode->add(mySkybox);
     viewer.scene_root->add(skyNode);
 
-    /*Shader *texture_shader = new Shader(shader_dir + "texture.vert", shader_dir + "texture.frag");
+    Shader* terrainShader = new Shader(shader_dir + "terrain.vert", shader_dir + "terrain.frag");
+    Terrain* terrain = new Terrain(terrainShader);
+    viewer.scene_root->add(terrain);
 
-    Texture *texture = new Texture("../../../textures/texture1.png");
-    Shape* sphere1 = new TexturedSphere(texture_shader, texture);
-    glm::mat4 sphere1_mat = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, -4.0f))
-        * glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f))
-        * glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-    Node* sphere1_node = new Node(sphere1_mat);
-
-    sphere1_node->add(sphere1);
-
-    viewer.scene_root->add(sphere1_node);*/
-    
-    Shader *phong_shader = new Shader(shader_dir + "phong.vert", shader_dir + "phong.frag");
-
-    Shape* sphere2 = new LightingSphere(phong_shader, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 sphere2_mat = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-    
-    Node* sphere2_node = new Node(sphere2_mat);
-
-    sphere2_node->add(sphere2);
-
-    viewer.scene_root->add(sphere2_node);
+    terrain->update(glm::vec3(0));//TODO une liste de fonction / event pou rmetre a jour la pos depuis view
+    std::cout << "height: " << terrain->getGlobalHeight(0, 0) << std::endl;
+    std::cout << "height: " << terrain->getGlobalHeight(40, 40) << std::endl;
 
     viewer.run();
 }

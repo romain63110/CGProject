@@ -40,7 +40,7 @@ private:
     float pitch_ = 0.0f;
 
     // camera
-    glm::vec3 camera_pos_ = glm::vec3(0.0f, 0.0f, 3.0f);
+    glm::vec3 camera_pos_ = glm::vec3(0.0f, 20.0f, 3.0f);
     glm::vec3 camera_front_ = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 camera_up_ = glm::vec3(0.0f, 1.0f, 0.0f);
 };
