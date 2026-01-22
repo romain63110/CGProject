@@ -1,7 +1,6 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.5)
 
 project(OpenGLProgram)
-find_package(OpenGL REQUIRED)
 
 set(SRC_DIR src)
 set(INCLUDE_DIR include)
@@ -38,16 +37,7 @@ set(IMGUI_SOURCES
 
 add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 
-if (WIN32)
-    # Windows: use bundled GLEW
-    add_subdirectory(${GLEW_DIR})
-    set(GLEW_LIB libglew_static)
-else()
-    # Linux / macOS: use system GLEW
-    find_package(GLEW REQUIRED)
-    set(GLEW_LIB GLEW::GLEW)
-endif()
-
+add_subdirectory(${GLEW_DIR})
 add_subdirectory(${GLFW_DIR})
 add_subdirectory(${GLM_DIR})
 
@@ -55,6 +45,7 @@ add_executable(opengl_program ${SOURCES} ${IMGUI_SOURCES} "include/aircraft.h" "
 
 target_include_directories(opengl_program PRIVATE
     ${INCLUDE_DIR}
+    ${GLEW_DIR}/include
     ${GLFW_DIR}/include
     ${GLM_DIR}
     ${IMGUI_DIR}
@@ -62,7 +53,6 @@ target_include_directories(opengl_program PRIVATE
 )
 
 target_link_libraries(opengl_program PRIVATE
-    ${GLEW_LIB}
+    libglew_static
     glfw
-    OpenGL::GL
 )
