@@ -33,15 +33,12 @@ public:
 
     float liftPower = 1.5f;
 
-    float dragRight = 1.0f;
-    float dragLeft = 1.0f;
-    float dragUp = 1.0f;
+    float dragRight = 10.0f;
+    float dragLeft = 10.0f;
+    float dragUp = 3.0f;
     float dragDown = 1.0f;
     float dragForward = 0.2f;
     float dragBack = 3.0f;
-
-    float rho = 1.225f;
-    float wingArea = 16.0f;
 
     float alpha_deg = 0.0f;
 

@@ -82,8 +82,9 @@ void Viewer::run()
         if (glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS) controls_.throttle += 0.6f * dt;
         if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) controls_.throttle -= 0.6f * dt;
 
-        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) controls_.elevator += 1.0f;
-        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) controls_.elevator -= 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) controls_.elevator += 0.6f;
+        if (glfwGetKey(win, GLFW_KEY_X) == GLFW_PRESS) controls_.elevator += 0.2f;
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) controls_.elevator -= 0.2f;
 
         if (controls_.throttle < 0.0f) controls_.throttle = 0.0f;
         if (controls_.throttle > 1.0f) controls_.throttle = 1.0f;
@@ -167,8 +168,7 @@ void Viewer::run()
         ImGui::Separator();
 
         ImGui::SliderFloat("Tmax", &flight_model_.Tmax, 0.0f, 40000.0f);
-        ImGui::SliderFloat("WingArea", &flight_model_.wingArea, 1.0f, 60.0f);
-        ImGui::SliderFloat("AirDensity rho", &flight_model_.rho, 0.2f, 2.0f);
+
 
         ImGui::Separator();
         ImGui::Text("Directional Drag");

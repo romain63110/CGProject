@@ -112,13 +112,12 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
         float rollError = glm::dot(corrAxis, forward_world);
 
         // Réglages : on ne touche pas au rollRate manuel !
-        float rollLevelStrength = 0.6f;            // force très faible
+        float rollLevelStrength = 1.2f;            // force très faible
         float rollDamping = 1.8f;                  // amortissement
         float bankDeadZone = glm::radians(8.0f);   // < 8° => pas de correction
-        float maxAutoRollRate = glm::radians(10.0f); // auto très doux
+        float maxAutoRollRate = glm::radians(20.0f); // auto très doux
 
-        // On convertit rollError en "angle" approximatif (petits angles)
-        // Si proche de l'endroit, rollError ~ sin(angle) ~ angle
+
         float approxBank = rollError;
 
         // Deadzone : si inclinaison très faible, ne corrige pas (évite micro wobble)
@@ -240,7 +239,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
     ac.position += ac.velocity * dt;
 
     // ========= Simple runway collision =========
-    float runwayLength = 4000.0f;
+    float runwayLength = 16000.0f;
     float runwayWidth = 12.0f;
     float halfL = runwayLength * 0.5f;
     float halfW = runwayWidth * 0.5f;
