@@ -17,7 +17,7 @@ int main()
 
     // get shader directory
     std::string shader_dir = SHADER_DIR;
-    std::string texture_dir = "../../../textures/"; //TODO: TEXTURE_DIR
+    std::string texture_dir = "../../textures/"; //TODO: TEXTURE_DIR
 
     // Chemins vers vos 6 images
     std::vector<std::string> faces = {
@@ -25,13 +25,13 @@ int main()
         texture_dir + "Daylight Box_Bottom.bmp", texture_dir + "Daylight Box_Front.bmp", texture_dir + "Daylight Box_Back.bmp"
     };
 
-    // 1. Création de la Texture Skybox via le nouveau constructeur
+    // 1. Crï¿½ation de la Texture Skybox via le nouveau constructeur
     Texture* skyTexture = new Texture(faces);
 
-    // 2. Création du shader skybox (celui fourni dans la réponse précédente)
+    // 2. Crï¿½ation du shader skybox (celui fourni dans la rï¿½ponse prï¿½cï¿½dente)
     Shader* skyShader = new Shader(shader_dir + "skybox.vert", shader_dir + "skybox.frag");
 
-    // 3. Création de l'objet Skybox
+    // 3. Crï¿½ation de l'objet Skybox
     Shape* mySkybox = new Skybox(skyShader, skyTexture);
 
     // 4. Ajout au Node
