@@ -27,6 +27,8 @@ Viewer::Viewer(int width, int height)
     }
 
 
+    glfwShowWindow(win);
+    
     glfwMakeContextCurrent(win);
 
     if (glewInit() != GLEW_OK)

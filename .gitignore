@@ -1,2 +1,8 @@
 .vs
 out
+build/
+*.o
+*.obj
+*.exe
+*.log
+.DS_Store
