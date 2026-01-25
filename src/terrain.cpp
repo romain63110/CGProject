@@ -7,10 +7,10 @@ Terrain::Terrain(Shader* terrainShader) : Node(glm::mat4(1.0f)), shader_(terrain
 
     // Texture Loading
     try {
-        sandTex_ = new Texture("../../../textures/sand.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-        grassTex_ = new Texture("../../../textures/grass.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-        rockTex_ = new Texture("../../../textures/rock.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
-        snowTex_ = new Texture("../../../textures/snow.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+        sandTex_ = new Texture("../../textures/sand.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+        grassTex_ = new Texture("../../textures/grass.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+        rockTex_ = new Texture("../../textures/rock.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
+        snowTex_ = new Texture("../../textures/snow.jpg", GL_REPEAT, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR);
     }
     catch (const std::exception& e) {
         std::cerr << "Erreur de chargement textures terrain: " << e.what() << std::endl;

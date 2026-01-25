@@ -32,6 +32,8 @@ set(SOURCES
     ${SRC_DIR}/skybox.cpp
     ${SRC_DIR}/terrain.cpp
     ${SRC_DIR}/terrain_chunk.cpp
+    ${SRC_DIR}/cloud.cpp
+    ${SRC_DIR}/ufo.cpp
 )
 
 # Define Shader director
