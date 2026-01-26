@@ -14,7 +14,7 @@ float TerrainChunk::getHeight(float localX, float localZ) {
 
     // Parameters (/!\ must be the same on the shader)
     float zoneScale = 0.005f;
-    float zoneAmplitude = 20.0f;
+    float zoneAmplitude = 200.0f;
 
     float detailScale = 0.03f;
     float detailAmplitude = 3.0f;

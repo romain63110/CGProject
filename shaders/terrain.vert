@@ -12,7 +12,6 @@ out vec3 FragPos;
 out vec3 Normal;
 
 
-
 // Simplex 2D noise (from https://gist.github.com/mulrooneydesign/6076a027cc516fd0ffd20d82ebfb14cf )
 //
 vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
@@ -28,7 +27,7 @@ float snoise(vec2 v){
   x12.xy -= i1;
   i = mod(i, 289.0);
   vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
-  + i.x + vec3(0.0, i1.x, 1.0 ));
+  + i.x + vec3(0.0, i1.x, 1.0  ));
   vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy),
     dot(x12.zw,x12.zw)), 0.0);
   m = m*m ;
@@ -44,23 +43,66 @@ float snoise(vec2 v){
   return 130.0 * dot(m, g);
 }
 
-float getNoiseHeight(float x, float z) {
-    // Parameters + Noise
-    float zoneScale = 0.005; 
-    float zoneAmplitude = 20.0;
+// Random stable par zone (0..1)
+float hash12(vec2 p)
+{
+    vec3 p3  = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+
+// ? Arrondit les sommets (moins pointus) via une courbe douce
+float roundPeaks(float n)
+{
+    // n in [-1..1]
+    float t = n * 0.5 + 0.5;       // -> [0..1]
+    t = smoothstep(0.0, 1.0, t);   // arrondi global
+    return t * 2.0 - 1.0;          // -> [-1..1]
+}
+
+float getNoiseHeight(float x, float z) 
+{
+    // =============================
+    // 1) Amplitude 150..300 par zone
+    // =============================
+    float zoneScale = 0.002; // ? plus petit => grandes formes (collines)
+    
+    float amplitudeZoneScale = 0.0004; // taille des grandes zones
+    vec2 zoneId = floor(vec2(x, z) * amplitudeZoneScale);
+    float randA = hash12(zoneId);               // 0..1
+    float zoneAmplitude = mix(150.0, 300.0, randA);
+
     float macroNoise = snoise(vec2(x * zoneScale, z * zoneScale));
-    float detailScale = 0.03;
+
+    // =============================
+    // 2) Grandes collines : sommets arrondis
+    // =============================
+    float base = roundPeaks(macroNoise);                // ? moins pointu
+    base = sign(base) * pow(abs(base), 1.15);           // ? encore plus “collines”
+    float baseHeight = base * zoneAmplitude;
+
+    // =============================
+    // 3) Détails : plus larges + moins forts (évite pics)
+    // =============================
+    float detailScale = 0.02;                           // ? détails moins “grésillants”
     float detailNoise = snoise(vec2(x * detailScale, z * detailScale));
 
-    // Base Heght
-    float baseHeight = macroNoise * zoneAmplitude;
+    float altitudeFactor = smoothstep(30.0, 140.0, abs(baseHeight));
+    float finalH = baseHeight + (detailNoise * 1.5 * altitudeFactor); // ? moins de pics
 
-    // Mountain rougher than the earth
-    float roughness = smoothstep(-0.5, 0.5, macroNoise); 
-    
-    float finalH = baseHeight + (detailNoise * 3.0 * roughness);
+    // =============================
+    // 4) Zone plaine autour de (0,0) (x2)
+    // =============================
+    float distFromCenter = length(vec2(x, z));
 
-     // flat bottom lake
+    float plainRadius = 1600.0; // ? ancien 800 -> x2
+    float plainMask = smoothstep(plainRadius * 0.7, plainRadius, distFromCenter);
+
+    finalH = mix(0.0, finalH, plainMask);
+
+    // =============================
+    // 5) Lake flat bottom
+    // =============================
     if (finalH < -5.0) {
         finalH = -5.0;
     }
@@ -71,24 +113,24 @@ float getNoiseHeight(float x, float z) {
 void main()
 {
     vec4 worldPos = model * vec4(aPos, 1.0);
-    
-    //Height at this point
+
+    // Height at this point
     float h = getNoiseHeight(worldPos.x, worldPos.z);
     worldPos.y = h;
 
-    //calculating the height right next to it
-    float e = 0.1; // Epsilon (petit écart)
+    // Calculating the height right next to it
+    float e = 0.1; // Epsilon
     float h_right = getNoiseHeight(worldPos.x + e, worldPos.z);
-    float h_back    = getNoiseHeight(worldPos.x, worldPos.z + e);
+    float h_back  = getNoiseHeight(worldPos.x, worldPos.z + e);
 
-    //Gradient
+    // Gradient tangents
     vec3 tangentX = normalize(vec3(e, h_right - h, 0.0));
     vec3 tangentZ = normalize(vec3(0.0, h_back - h, e));
 
-    //Vector product to get the normal
+    // Vector product to get the normal
     Normal = normalize(cross(tangentZ, tangentX));
 
-    //Out
+    // Out
     Height = h;
     FragPos = vec3(worldPos);
     gl_Position = projection * view * worldPos;

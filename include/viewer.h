@@ -4,6 +4,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+
 #include "node.h"
 
 #include "aircraft.h"
@@ -12,6 +14,7 @@
 #include "camera_controller.h"
 
 class AfterburnerFlame;
+class Terrain; // ? forward declaration
 
 class Viewer {
 public:
@@ -22,17 +25,19 @@ public:
     AfterburnerFlame* afterburnerL_ = nullptr;
     AfterburnerFlame* afterburnerR_ = nullptr;
 
+    // ? Pour que Viewer puisse update le terrain chaque frame
+    Terrain* terrain_ = nullptr;
 
     void on_key(int key, int action);
     void on_mouse_move(double xpos, double ypos);
     void on_mouse_button(int button, int action);
 
-    Node* scene_root;
+    Node* scene_root = nullptr;
 
     Aircraft aircraft_;
 
 private:
-    GLFWwindow* win;
+    GLFWwindow* win = nullptr;
 
     static void key_callback_static(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void cursor_pos_callback_static(GLFWwindow* window, double xpos, double ypos);
@@ -47,7 +52,7 @@ private:
     double last_x_ = 0.0;
     double last_y_ = 0.0;
 
-    //Euler
+    // Euler
     float yaw_ = -90.0f;
     float pitch_ = 0.0f;
 

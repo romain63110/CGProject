@@ -8,7 +8,9 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 #include "afterburner_flame.h"
+#include "terrain.h" // ? important
 
 
 Viewer::Viewer(int width, int height)
@@ -40,7 +42,8 @@ Viewer::Viewer(int width, int height)
         glfwTerminate();
     }
 
-    glfwSwapInterval(1);
+    // ? VSync OFF
+    glfwSwapInterval(0);
 
     glfwSetWindowUserPointer(win, this);
 
@@ -92,17 +95,23 @@ void Viewer::run()
         flight_model_.step(aircraft_, controls_, dt);
         aircraft_.syncNode();
 
+        // ? Terrain update autour de l’avion
+        if (terrain_ && aircraft_.node)
+        {
+            glm::vec3 planePos = glm::vec3(aircraft_.node->get_transform()[3]);
+            terrain_->update(planePos);
+        }
+
         if (camera_ctrl_.mode == CameraController::Mode::FreeCam)
             camera_ctrl_.updateFreeCamKeys(win, dt, camera_);
         else
             camera_ctrl_.updateFollowCam(aircraft_, dt, camera_);
 
-
         float t = (float)glfwGetTime();
 
         float ab = 0.0f;
         if (controls_.throttle > 0.9f)
-            ab = (controls_.throttle - 0.9f) / 0.1f; 
+            ab = (controls_.throttle - 0.9f) / 0.1f;
 
         if (afterburnerL_)
         {
@@ -115,7 +124,6 @@ void Viewer::run()
             afterburnerR_->timeSec = t;
             afterburnerR_->intensity = ab;
         }
-
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
@@ -134,7 +142,6 @@ void Viewer::run()
         ImGui::Text("CL: %.3f", flight_model_.last_CL);
         ImGui::Text("Lift: %.1f N", flight_model_.last_L);
         ImGui::SliderFloat("LiftPower", &flight_model_.liftPower, 0.0f, 10.0f);
-
 
         ImGui::Separator();
 
@@ -168,7 +175,6 @@ void Viewer::run()
         ImGui::Separator();
 
         ImGui::SliderFloat("Tmax", &flight_model_.Tmax, 0.0f, 40000.0f);
-
 
         ImGui::Separator();
         ImGui::Text("Directional Drag");

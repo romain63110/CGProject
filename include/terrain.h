@@ -1,43 +1,46 @@
 #pragma once
-#include "node.h" // Ta classe de base
+
+#include "node.h"
 #include "terrain_chunk.h"
 #include "texture.h"
+
 #include <map>
 #include <string>
 #include <vector>
+
 #include <GL/glew.h>
+
+class Shader;
 
 class Terrain : public Node {
 public:
     Terrain(Shader* terrainShader);
-    ~Terrain(); // Important pour nettoyer le VAO partagé
+    ~Terrain();
 
     void update(glm::vec3 playerPos);
 
-    // Override de Node
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
 
     float getGlobalHeight(float worldX, float worldZ);
 
 private:
     std::map<std::string, TerrainChunk*> chunks_;
-    GLuint shader_;
+    GLuint shader_ = 0;
 
-    // Paramètres globaux
     float chunkSize_ = 256.0f;
-    int resolution_ = 128;     // divisions: (n x n)x2 triangles
-    int renderDistance_ = 3; //nb of chunk
+    int resolution_ = 16;
+    int renderDistance_ = 6;
 
-    // Shared between each chunk
-    GLuint sharedVAO, sharedVBO, sharedEBO;
-    int indexCount_;
+    GLuint sharedVAO = 0;
+    GLuint sharedVBO = 0;
+    GLuint sharedEBO = 0;
+    GLuint indexCount_ = 0;
 
     void generateSharedMesh();
     std::string getKey(int x, int z);
 
-    // TExture 
-    Texture* sandTex_;
-    Texture* grassTex_;
-    Texture* rockTex_;
-    Texture* snowTex_;
+    Texture* sandTex_ = nullptr;
+    Texture* grassTex_ = nullptr;
+    Texture* rockTex_ = nullptr;
+    Texture* snowTex_ = nullptr;
 };
