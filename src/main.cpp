@@ -17,6 +17,7 @@
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
 #endif
+#include <terrain.h>
 
 int main()
 {
@@ -52,7 +53,7 @@ int main()
     Shader* phong_shader = new Shader(shader_dir + "phong.vert", shader_dir + "phong.frag");
     Shader* color_shader = new Shader(shader_dir + "flat_color.vert", shader_dir + "flat_color.frag");
 
-    // ? shader avion TEXTURÉ
+    // ? shader avion TEXTURï¿½
     Shader* plane_shader = new Shader(shader_dir + "planeshader.vert",
         shader_dir + "planeshader.frag");
 
@@ -77,6 +78,13 @@ int main()
     Node* sphere2_node = new Node(glm::mat4(1.0f));
     sphere2_node->add(sphere2);
     viewer.scene_root->add(sphere2_node);
+    Shader* terrainShader = new Shader(shader_dir + "terrain.vert", shader_dir + "terrain.frag");
+    Terrain* terrain = new Terrain(terrainShader);
+    viewer.scene_root->add(terrain);
+
+    terrain->update(glm::vec3(0));//TODO une liste de fonction / event pou rmetre a jour la pos depuis view
+    std::cout << "height: " << terrain->getGlobalHeight(0, 0) << std::endl;
+    std::cout << "height: " << terrain->getGlobalHeight(40, 40) << std::endl;
 
     // =========================
     // AIRCRAFT NODE (root)
@@ -141,7 +149,7 @@ int main()
     aircraftNode->add(afterburnerNodeL);
     aircraftNode->add(afterburnerNodeR);
 
-    // Attacher l'avion à la scène
+    // Attacher l'avion ï¿½ la scï¿½ne
     viewer.scene_root->add(aircraftNode);
     viewer.aircraft_.node = aircraftNode;
 

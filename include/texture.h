@@ -15,6 +15,7 @@ public:
 
     GLuint getGLid() const { return glid_; }
     GLenum getTarget() const { return target_; }
+    void bind(int unit);
 
 private:
     GLuint glid_;

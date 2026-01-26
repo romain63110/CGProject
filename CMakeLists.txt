@@ -15,15 +15,11 @@ set(SOURCES
     ${SRC_DIR}/node.cpp
     ${SRC_DIR}/shape.cpp
     ${SRC_DIR}/shader.cpp
-    ${SRC_DIR}/viewer.cpp
-    ${SRC_DIR}/triangle.cpp
-    ${SRC_DIR}/pyramid.cpp
-    ${SRC_DIR}/cylinder.cpp
-    ${SRC_DIR}/sphere.cpp
+    ${SRC_DIR}/viewer.cpp 
     ${SRC_DIR}/texture.cpp
-    ${SRC_DIR}/textured_sphere.cpp
-    ${SRC_DIR}/lighting_sphere.cpp
     ${SRC_DIR}/skybox.cpp
+    ${SRC_DIR}/terrain.cpp
+    ${SRC_DIR}/terrain_chunk.cpp
 )
 
 set(IMGUI_SOURCES

@@ -44,6 +44,17 @@ private:
 
     CameraState camera_;
     CameraController camera_ctrl_;
+    double last_x_ = 0.0;
+    double last_y_ = 0.0;
+
+    //Euler
+    float yaw_ = -90.0f;
+    float pitch_ = 0.0f;
+
+    // camera
+    glm::vec3 camera_pos_ = glm::vec3(0.0f, 20.0f, 3.0f);
+    glm::vec3 camera_front_ = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 camera_up_ = glm::vec3(0.0f, 1.0f, 0.0f);
 };
 
 #endif
