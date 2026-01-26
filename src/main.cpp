@@ -94,7 +94,7 @@ int main()
     abL = glm::rotate(abL, glm::radians(180.0f), glm::vec3(0, 1, 0));
     abL = glm::rotate(abL, glm::radians(2.0f), glm::vec3(-1, 0, 0));
     abL = glm::scale(abL, glm::vec3(0.08f, 0.08f, 10.f));
-    abL = glm::translate(abL, glm::vec3(-1.2f, 4.3f, -1.17f)); // X gauche
+    abL = glm::translate(abL, glm::vec3(-1.2f, 8.7f, -1.17f)); // X gauche
 
     Node* afterburnerNodeL = new Node(abL);
     AfterburnerFlame* flameL = new AfterburnerFlame(abShader, 24);
@@ -106,7 +106,7 @@ int main()
     abR = glm::rotate(abR, glm::radians(180.0f), glm::vec3(0, 1, 0));
     abR = glm::rotate(abR, glm::radians(2.0f), glm::vec3(-1, 0, 0));
     abR = glm::scale(abR, glm::vec3(0.08f, 0.08f, 10.f));
-    abR = glm::translate(abR, glm::vec3(1.2f, 4.3f, -1.17f)); // X droite
+    abR = glm::translate(abR, glm::vec3(1.2f, 8.7f, -1.17f)); // X droite
 
     Node* afterburnerNodeR = new Node(abR);
     AfterburnerFlame* flameR = new AfterburnerFlame(abShader, 24);
