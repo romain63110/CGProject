@@ -55,7 +55,7 @@ int main()
     // =========================
     // RUNWAY
     // =========================
-    Runway* runway = new Runway(color_shader, 160000.0f, 12.0f);
+    Runway* runway = new Runway(color_shader, 1000.0f, 12.0f);
     Node* runwayNode = new Node(glm::mat4(1.0f));
     runwayNode->add(runway);
     viewer.scene_root->add(runwayNode);
