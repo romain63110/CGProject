@@ -25,9 +25,6 @@ public:
     AfterburnerFlame* afterburnerL_ = nullptr;
     AfterburnerFlame* afterburnerR_ = nullptr;
 
-    Shader* ufo_shader = nullptr;
-    GLuint  ufo_texture_id = 0;
-
     // ? Pour que Viewer puisse update le terrain chaque frame
     Terrain* terrain_ = nullptr;
 
