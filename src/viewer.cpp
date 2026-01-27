@@ -185,6 +185,11 @@ void Viewer::run()
         ImGui::SliderFloat("dragLeft", &flight_model_.dragLeft, 0.0f, 10.0f);
         ImGui::SliderFloat("dragUp", &flight_model_.dragUp, 0.0f, 10.0f);
         ImGui::SliderFloat("dragDown", &flight_model_.dragDown, 0.0f, 10.0f);
+        ImGui::Separator();
+        ImGui::Text("World Objects");
+        ImGui::Text("Clouds: %zu", cloud_nodes_.size());
+        ImGui::Text("UFO: %s", ufo_node_ ? "ON" : "OFF");
+
 
         ImGui::End();
 
@@ -200,6 +205,25 @@ void Viewer::run()
 
         glm::mat4 model = glm::mat4(1.0f);
         glm::mat4 view = glm::lookAt(camera_.pos, camera_.pos + camera_.front, camera_.up);
+        // =========================
+        // UFO (salma)
+        // =========================
+        if (ufo_node_)
+        {
+            float t = (float)glfwGetTime();
+
+            float hoverY = sin(t * 1.5f) * 3.0f;
+            float rotation = t * 0.8f;
+
+            glm::vec3 basePos(0.0f, 120.0f, 0.0f);
+
+            glm::mat4 tr = glm::translate(glm::mat4(1.0f),
+                basePos + glm::vec3(0, hoverY, 0));
+            tr = glm::rotate(tr, rotation, glm::vec3(0, 1, 0));
+            tr = glm::scale(tr, glm::vec3(10.0f));
+
+            ufo_node_->set_transform(tr);
+        }
 
         scene_root->draw(model, view, projection);
 

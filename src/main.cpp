@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
@@ -19,9 +20,13 @@ int main()
 {
     Viewer viewer;
 
-    std::string shader_dir = SHADER_DIR;
+    // =========================
+    // PATHS
+    // =========================
+    std::string shader_dir  = SHADER_DIR;
     std::string texture_dir = "../../../textures/";
-    std::string model_dir = "../../../ressources/model/";
+    std::string model_dir   = "../../../ressources/model/";
+    std::string world_dir   = "../../../ressources/world/";
 
     // =========================
     // SKYBOX
@@ -36,7 +41,8 @@ int main()
     };
 
     Texture* skyTexture = new Texture(faces);
-    Shader* skyShader = new Shader(shader_dir + "skybox.vert", shader_dir + "skybox.frag");
+    Shader* skyShader = new Shader(shader_dir + "skybox.vert",
+                                   shader_dir + "skybox.frag");
     Shape* mySkybox = new Skybox(skyShader, skyTexture);
 
     Node* skyNode = new Node(glm::mat4(1.0f));
@@ -46,11 +52,20 @@ int main()
     // =========================
     // SHADERS
     // =========================
-    Shader* phong_shader = new Shader(shader_dir + "phong.vert", shader_dir + "phong.frag");
-    Shader* color_shader = new Shader(shader_dir + "flat_color.vert", shader_dir + "flat_color.frag");
+    Shader* phong_shader = new Shader(shader_dir + "phong.vert",
+                                      shader_dir + "phong.frag");
+
+    Shader* color_shader = new Shader(shader_dir + "flat_color.vert",
+                                      shader_dir + "flat_color.frag");
 
     Shader* plane_shader = new Shader(shader_dir + "planeshader.vert",
-        shader_dir + "planeshader.frag");
+                                      shader_dir + "planeshader.frag");
+
+    Shader* cloud_shader = new Shader(shader_dir + "cloud.vert",
+                                      shader_dir + "cloud.frag");
+
+    Shader* ufo_shader = new Shader(shader_dir + "ufo.vert",
+                                    shader_dir + "ufo.frag");
 
     // =========================
     // RUNWAY
@@ -63,25 +78,64 @@ int main()
     // =========================
     // TERRAIN
     // =========================
-    Shader* terrainShader = new Shader(shader_dir + "terrain.vert", shader_dir + "terrain.frag");
+    Shader* terrainShader = new Shader(shader_dir + "terrain.vert",
+                                       shader_dir + "terrain.frag");
+
     Terrain* terrain = new Terrain(terrainShader);
     viewer.scene_root->add(terrain);
-
-    // ✅ IMPORTANT : permet au Viewer de faire terrain->update(pos avion)
     viewer.terrain_ = terrain;
 
     // =========================
-    // AIRCRAFT NODE (root)
+    // CLOUDS  ✅ CLOUD SHADER
+    // =========================
+    Node* cloudsRoot = new Node(glm::mat4(1.0f));
+    Shape* cloudMesh = new ObjModel(cloud_shader,
+                                   world_dir + "cloud.obj");
+
+    for (int i = 0; i < 50; ++i)
+    {
+        glm::vec3 pos(
+            rand() % 800 - 400,
+            60.0f + rand() % 30,
+            rand() % 800 - 400
+        );
+
+        glm::mat4 tr = glm::translate(glm::mat4(1.0f), pos);
+        tr = glm::scale(tr, glm::vec3(5.0f));
+
+        Node* cloudNode = new Node(tr);
+        cloudNode->add(cloudMesh);
+
+        cloudsRoot->add(cloudNode);
+        viewer.cloud_nodes_.push_back(cloudNode);
+    }
+
+    viewer.scene_root->add(cloudsRoot);
+
+    // =========================
+    // UFO 
+    // =========================
+    Shape* ufoMesh = new ObjModel(ufo_shader,
+                                 world_dir + "UFO.obj");
+
+    glm::mat4 ufoTr = glm::translate(glm::mat4(1.0f),
+                                     glm::vec3(0.0f, 120.0f, 0.0f));
+    ufoTr = glm::scale(ufoTr, glm::vec3(10.0f));
+
+    Node* ufoNode = new Node(ufoTr);
+    ufoNode->add(ufoMesh);
+
+    viewer.scene_root->add(ufoNode);
+    viewer.ufo_node_ = ufoNode;
+
+    // =========================
+    // AIRCRAFT 
     // =========================
     Node* aircraftNode = new Node(glm::mat4(1.0f));
 
-    // =========================
-    // AFTERBURNER SHADER
-    // =========================
     Shader* abShader = new Shader(shader_dir + "afterburner.vert",
-        shader_dir + "afterburner.frag");
+                                  shader_dir + "afterburner.frag");
 
-    // ---------- moteur gauche ----------
     glm::mat4 abL = glm::mat4(1.0f);
     abL = glm::rotate(abL, glm::radians(180.0f), glm::vec3(0, 1, 0));
     abL = glm::rotate(abL, glm::radians(2.0f), glm::vec3(-1, 0, 0));
@@ -93,7 +147,6 @@ int main()
     flameL->color = glm::vec3(1.0f, 0.1f, 0.05f);
     afterburnerNodeL->add(flameL);
 
-    // ---------- moteur droit ----------
     glm::mat4 abR = glm::mat4(1.0f);
     abR = glm::rotate(abR, glm::radians(180.0f), glm::vec3(0, 1, 0));
     abR = glm::rotate(abR, glm::radians(2.0f), glm::vec3(-1, 0, 0));
@@ -108,20 +161,15 @@ int main()
     viewer.afterburnerL_ = flameL;
     viewer.afterburnerR_ = flameR;
 
-    // =========================
-    // PLANE MESH TRANSFORM
-    // =========================
     glm::mat4 fix = glm::mat4(1.0f);
     fix = glm::rotate(fix, glm::radians(-90.0f), glm::vec3(0, 1, 0));
     fix = glm::scale(fix, glm::vec3(0.004f));
 
     Node* planeMeshNode = new Node(fix);
-    Shape* planeMesh = new ObjModel(plane_shader, model_dir + "Plane.obj");
+    Shape* planeMesh = new ObjModel(plane_shader,
+                                   model_dir + "Plane.obj");
     planeMeshNode->add(planeMesh);
 
-    // =========================
-    // ADD TO AIRCRAFT NODE
-    // =========================
     aircraftNode->add(planeMeshNode);
     aircraftNode->add(afterburnerNodeL);
     aircraftNode->add(afterburnerNodeR);
@@ -129,5 +177,8 @@ int main()
     viewer.scene_root->add(aircraftNode);
     viewer.aircraft_.node = aircraftNode;
 
+    // =========================
+    // RUN
+    // =========================
     viewer.run();
 }

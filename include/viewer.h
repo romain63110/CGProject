@@ -36,6 +36,12 @@ public:
 
     Aircraft aircraft_;
 
+    //partie salma
+    Node* ufo_node_ = nullptr;
+    glm::vec3 ufo_base_pos_;
+
+    std::vector<Node*> cloud_nodes_;
+
 private:
     GLFWwindow* win = nullptr;
 

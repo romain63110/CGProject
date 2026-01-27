@@ -80,19 +80,6 @@ static int fixObjIndex(int idx, int size)
     return -1;
 }
 
-static bool isDecalMaterial(const std::string& name)
-{
-    std::string n = name;
-    for (char& c : n) c = (char)tolower(c);
-
-    if (n.find("sticker") != std::string::npos) return true;
-    if (n.find("decal") != std::string::npos) return true;
-    if (n.find("trap") != std::string::npos) return true;
-    if (n.find("material.002") != std::string::npos) return true;
-
-    return false;
-}
-
 static std::unordered_map<std::string, Material> loadMTL(const std::string& mtlPath)
 {
     std::unordered_map<std::string, Material> mats;
@@ -100,9 +87,11 @@ static std::unordered_map<std::string, Material> loadMTL(const std::string& mtlP
     std::ifstream file(mtlPath);
     if (!file.is_open())
     {
-        std::cerr << "[MTL] Cannot open: " << mtlPath << "\n";
+        std::cout << "[MTL] FAIL open " << mtlPath << "\n";
         return mats;
     }
+
+    std::cout << "[MTL] OPEN " << mtlPath << "\n";
 
     std::string line;
     std::string currentName;
@@ -110,9 +99,6 @@ static std::unordered_map<std::string, Material> loadMTL(const std::string& mtlP
 
     while (std::getline(file, line))
     {
-        if (line.empty() || line[0] == '#')
-            continue;
-
         std::istringstream iss(line);
         std::string type;
         iss >> type;
@@ -124,6 +110,7 @@ static std::unordered_map<std::string, Material> loadMTL(const std::string& mtlP
 
             iss >> currentName;
             currentMat = Material();
+            std::cout << "[MTL] material " << currentName << "\n";
         }
         else if (type == "Ka")
         {
@@ -141,27 +128,32 @@ static std::unordered_map<std::string, Material> loadMTL(const std::string& mtlP
         {
             iss >> currentMat.Ns;
         }
+        else if (type == "map_Kd")
+        {
+            std::string tex;
+            iss >> tex;
+            std::cout << "[MTL] map_Kd FOUND but NOT LOADED: " << tex << "\n";
+        }
     }
 
     if (!currentName.empty())
         mats[currentName] = currentMat;
 
-    std::cout << "[MTL] Materials loaded: " << mats.size() << "\n";
+    std::cout << "[MTL] materials count = " << mats.size() << "\n";
     return mats;
 }
 
 ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
     : Shape(shader_program)
 {
+    std::cout << "[OBJ] load " << objPath << "\n";
+
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texcoords;
 
     std::string folder = getDirectoryFromPath(objPath);
-
     std::unordered_map<std::string, Material> materials;
-
-    // stock temporaire : materialName -> vertices
     std::unordered_map<std::string, std::vector<VertexPNT>> groups;
 
     std::string currentMaterialName = "default";
@@ -169,16 +161,13 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
     std::ifstream file(objPath);
     if (!file.is_open())
     {
-        std::cerr << "[ObjModel] Cannot open: " << objPath << "\n";
+        std::cout << "[OBJ] FAIL open\n";
         return;
     }
 
     std::string line;
     while (std::getline(file, line))
     {
-        if (line.empty() || line[0] == '#')
-            continue;
-
         std::istringstream iss(line);
         std::string type;
         iss >> type;
@@ -192,6 +181,7 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
         else if (type == "usemtl")
         {
             iss >> currentMaterialName;
+            std::cout << "[OBJ] usemtl " << currentMaterialName << "\n";
         }
         else if (type == "v")
         {
@@ -215,12 +205,8 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
         {
             std::vector<FaceIndex> face;
             std::string token;
-
             while (iss >> token)
                 face.push_back(parseFaceToken(token));
-
-            if ((int)face.size() < 3)
-                continue;
 
             for (int i = 1; i < (int)face.size() - 1; i++)
             {
@@ -228,69 +214,37 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
 
                 for (int k = 0; k < 3; k++)
                 {
-                    int vIndex = fixObjIndex(tri[k].v, (int)positions.size());
-                    int vnIndex = fixObjIndex(tri[k].vn, (int)normals.size());
-                    int vtIndex = fixObjIndex(tri[k].vt, (int)texcoords.size());
-
-                    if (vIndex < 0 || vIndex >= (int)positions.size())
-                        continue;
+                    int vIndex = fixObjIndex(tri[k].v, positions.size());
+                    int vnIndex = fixObjIndex(tri[k].vn, normals.size());
+                    int vtIndex = fixObjIndex(tri[k].vt, texcoords.size());
 
                     glm::vec3 pos = positions[vIndex];
+                    glm::vec3 nrm = (vnIndex >= 0) ? normals[vnIndex] : glm::vec3(0, 1, 0);
+                    glm::vec2 uv = (vtIndex >= 0) ? texcoords[vtIndex] : glm::vec2(0);
 
-                    glm::vec3 nrm(0, 1, 0);
-                    if (vnIndex >= 0 && vnIndex < (int)normals.size())
-                        nrm = normals[vnIndex];
-
-                    glm::vec2 uv(0, 0);
-                    if (vtIndex >= 0 && vtIndex < (int)texcoords.size())
-                        uv = texcoords[vtIndex];
-
-                    // on ajoute dans le groupe du material actif
                     groups[currentMaterialName].push_back({ pos, nrm, uv });
                 }
             }
         }
     }
 
-    // ? création des SubMeshes VAO/VBO
     for (auto& it : groups)
     {
-        const std::string& matName = it.first;
-        std::vector<VertexPNT>& verts = it.second;
-
-        if (verts.empty())
-            continue;
-
-        // ignore decals
-        if (isDecalMaterial(matName))
-            continue;
-
         SubMesh sm;
-        sm.materialName = matName;
-        sm.vertexCount = (int)verts.size();
+        sm.materialName = it.first;
+        sm.vertexCount = (int)it.second.size();
 
-        // matériau
-        if (materials.find(matName) != materials.end())
-        {
-            Material m = materials[matName];
-            sm.Kd = m.Kd;
-            sm.Ks = m.Ks;
-            sm.Ns = m.Ns;
-        }
-        else
-        {
-            sm.Kd = glm::vec3(0.8f);
-            sm.Ks = glm::vec3(0.0f);
-            sm.Ns = 8.0f;
-        }
+        Material m = materials.count(it.first) ? materials[it.first] : Material();
+        sm.Kd = m.Kd;
+        sm.Ks = m.Ks;
+        sm.Ns = m.Ns;
 
-        // OpenGL buffers
         glGenVertexArrays(1, &sm.VAO);
         glBindVertexArray(sm.VAO);
 
         glGenBuffers(1, &sm.VBO);
         glBindBuffer(GL_ARRAY_BUFFER, sm.VBO);
-        glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(VertexPNT), verts.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, it.second.size() * sizeof(VertexPNT), it.second.data(), GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPNT), (void*)0);
@@ -302,37 +256,23 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VertexPNT), (void*)offsetof(VertexPNT, uv));
 
         glBindVertexArray(0);
-
         submeshes_.push_back(sm);
     }
 
-    std::cout << "[ObjModel] Submeshes created: " << submeshes_.size() << "\n";
-}
-
-ObjModel::~ObjModel()
-{
-    for (auto& sm : submeshes_)
-    {
-        glDeleteVertexArrays(1, &sm.VAO);
-        glDeleteBuffers(1, &sm.VBO);
-    }
+    std::cout << "[OBJ] submeshes = " << submeshes_.size() << "\n";
 }
 
 void ObjModel::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection)
 {
-    glUseProgram(this->shader_program_);
+    glUseProgram(shader_program_);
 
-    GLint locModel = glGetUniformLocation(this->shader_program_, "model");
-    GLint locView = glGetUniformLocation(this->shader_program_, "view");
-    GLint locProj = glGetUniformLocation(this->shader_program_, "projection");
+    glUniformMatrix4fv(glGetUniformLocation(shader_program_, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(shader_program_, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(shader_program_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-    glUniformMatrix4fv(locModel, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(locView, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(locProj, 1, GL_FALSE, glm::value_ptr(projection));
-
-    GLint locKd = glGetUniformLocation(this->shader_program_, "uKd");
-    GLint locKs = glGetUniformLocation(this->shader_program_, "uKs");
-    GLint locNs = glGetUniformLocation(this->shader_program_, "uNs");
+    GLint locKd = glGetUniformLocation(shader_program_, "uKd");
+    GLint locKs = glGetUniformLocation(shader_program_, "uKs");
+    GLint locNs = glGetUniformLocation(shader_program_, "uNs");
 
     for (auto& sm : submeshes_)
     {
