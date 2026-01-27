@@ -1,0 +1,3 @@
+/home/solly/Documents/uni_s5/computer_graphics/opengl_clouds/CMakeFiles/opengl_clouds.dir
+/home/solly/Documents/uni_s5/computer_graphics/opengl_clouds/CMakeFiles/edit_cache.dir
+/home/solly/Documents/uni_s5/computer_graphics/opengl_clouds/CMakeFiles/rebuild_cache.dir
