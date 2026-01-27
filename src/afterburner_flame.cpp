@@ -65,14 +65,14 @@ void AfterburnerFlame::buildConeMesh()
     glBindVertexArray(0);
 }
 
-void AfterburnerFlame::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection)
+void AfterburnerFlame::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane)
 {
     if (intensity <= 0.001f) return;
 
     glUseProgram(this->shader_program_);
 
     // model/view/proj (ton Shape::draw fait juste les glUniform*)
-    Shape::draw(model, view, projection);
+    Shape::draw(model, view, projection, clipPlane);
 
     // uniforms supplémentaires
     GLint loc = glGetUniformLocation(this->shader_program_, "uTime");

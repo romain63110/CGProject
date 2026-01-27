@@ -12,7 +12,7 @@ public:
     Node(const glm::mat4& transform = glm::mat4(1.0f));
     void add(Node* node);
     void add(Shape* shape);
-    void virtual draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
+    void virtual draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane);
     void key_handler(int key) const;
 
     void set_transform(const glm::mat4& transform);

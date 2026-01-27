@@ -20,6 +20,8 @@ set(SOURCES
     ${SRC_DIR}/skybox.cpp
     ${SRC_DIR}/terrain.cpp
     ${SRC_DIR}/terrain_chunk.cpp
+    ${SRC_DIR}/water.cpp
+    ${SRC_DIR}/water_framebuffers.cpp
 )
 
 set(IMGUI_SOURCES

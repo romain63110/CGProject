@@ -7,7 +7,7 @@ public:
     Runway(Shader* shader_program, float length, float width);
     ~Runway();
 
-    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
+    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane) override;
 
 private:
     GLuint VAO = 0;

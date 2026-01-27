@@ -6,7 +6,7 @@ class Skybox : public Shape {
 public:
     Skybox(Shader* shader, Texture* texture);
     ~Skybox();
-    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
+    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane) override;
 
 private:
     unsigned int VAO, VBO;

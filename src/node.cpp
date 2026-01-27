@@ -27,15 +27,15 @@ void Node::add(Shape* shape) {
     children_shape_.push_back(shape);
 }
 
-void Node::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
+void Node::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane) {
     glm::mat4 updatedModel = model * transform_;
 
     for (auto child : children_) {
-        child->draw(updatedModel, view, projection);
+        child->draw(updatedModel, view, projection, clipPlane);
     }
 
     for (auto child : children_shape_) {
-        child->draw(updatedModel, view, projection);
+        child->draw(updatedModel, view, projection, clipPlane);
     }
 }
 

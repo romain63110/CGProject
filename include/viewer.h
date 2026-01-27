@@ -12,6 +12,7 @@
 #include "aircraft_controls.h"
 #include "flight_model_physics.h"
 #include "camera_controller.h"
+#include "water.h"
 
 class AfterburnerFlame;
 class Terrain; // ? forward declaration
@@ -60,6 +61,11 @@ private:
     glm::vec3 camera_pos_ = glm::vec3(0.0f, 20.0f, 3.0f);
     glm::vec3 camera_front_ = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 camera_up_ = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    //Water
+    WaterFrameBuffers* waterFBOs;
+    Water* waterObject;
+    void renderScene(glm::mat4 view, glm::mat4 projection, glm::vec4 clipPlane);
 };
 
 #endif

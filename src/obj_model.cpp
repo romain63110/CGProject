@@ -318,9 +318,11 @@ ObjModel::~ObjModel()
     }
 }
 
-void ObjModel::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection)
+void ObjModel::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane)
 {
     glUseProgram(this->shader_program_);
+
+    glUniform4f(glGetUniformLocation(shader_program_, "plane"), clipPlane.x, clipPlane.y, clipPlane.z, clipPlane.w);
 
     GLint locModel = glGetUniformLocation(this->shader_program_, "model");
     GLint locView = glGetUniformLocation(this->shader_program_, "view");

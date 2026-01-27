@@ -7,6 +7,8 @@ uniform mat4 projection;
 
 uniform float heightScale;
 
+uniform vec4 plane;
+
 out float Height;
 out vec3 FragPos;
 out vec3 Normal;
@@ -117,6 +119,8 @@ void main()
     // Height at this point
     float h = getNoiseHeight(worldPos.x, worldPos.z);
     worldPos.y = h;
+
+    gl_ClipDistance[0] = dot(worldPos, plane);//OpenGL don't draw if < 0
 
     // Calculating the height right next to it
     float e = 0.1; // Epsilon

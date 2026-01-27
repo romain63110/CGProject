@@ -11,7 +11,7 @@ class Shape {
 public:
     Shape(Shader *shader_program);
 
-    virtual void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection);
+    virtual void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane);
 
 protected:
     GLuint shader_program_;

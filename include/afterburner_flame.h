@@ -14,7 +14,7 @@ public:
     float timeSec = 0.0f;
     glm::vec3 color = glm::vec3(0.2f, 0.6f, 1.0f);
 
-    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
+    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane) override;
 
 private:
     unsigned int vao_ = 0;

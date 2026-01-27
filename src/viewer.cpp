@@ -11,6 +11,7 @@
 
 #include "afterburner_flame.h"
 #include "terrain.h" // ? important
+#include "water.h"
 
 
 Viewer::Viewer(int width, int height)
@@ -61,8 +62,19 @@ Viewer::Viewer(int width, int height)
     glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+    glEnable(GL_CLIP_PLANE0);
+
+    waterFBOs = new WaterFrameBuffers(); // Create FBOs
+    std::string shader_dir = SHADER_DIR;
+    Shader* waterShader = new Shader(shader_dir + "water.vert", shader_dir + "water.frag");
+    waterObject = new Water(waterShader, waterFBOs);
 
     scene_root = new Node();
+}
+
+void Viewer::renderScene(glm::mat4 view, glm::mat4 projection, glm::vec4 clipPlane) {
+    glm::mat4 model = glm::mat4(1.0f);
+    scene_root->draw(model, view, projection, clipPlane);
 }
 
 void Viewer::run()
@@ -71,6 +83,8 @@ void Viewer::run()
 
     while (!glfwWindowShouldClose(win))
     {
+        float waterHeight = 1.0f;
+
         double now = glfwGetTime();
         float dt = float(now - lastTime);
         lastTime = now;
@@ -193,15 +207,61 @@ void Viewer::run()
         int width, height;
         glfwGetFramebufferSize(win, &width, &height);
         if (height == 0) height = 1;
-
         float aspect_ratio = (float)width / (float)height;
-
         glm::mat4 projection = glm::perspective(glm::radians(camera_.fov), aspect_ratio, 0.1f, 5000.0f);
 
-        glm::mat4 model = glm::mat4(1.0f);
+        //REFRACTION ---
+        waterFBOs->bindRefractionFrameBuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glm::mat4 view = glm::lookAt(camera_.pos, camera_.pos + camera_.front, camera_.up);
 
-        scene_root->draw(model, view, projection);
+        //Draw the scene using Clipping (cut everything that is ON the water: 0, -1, 0, waterHeight)
+        renderScene(view, projection, glm::vec4(0, -1, 0, waterHeight));
+
+        //REFLECTION ---
+        waterFBOs->bindReflectionFrameBuffer();
+        glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        //We put the camera at the bottom
+        float distance = 2 * (camera_pos_.y - waterHeight);
+        glm::vec3 cameraReflectPos = camera_pos_;
+        cameraReflectPos.y -= distance;
+
+        // Reverse pitch (regard)
+        float oldPitch = pitch_;
+        pitch_ = -pitch_;
+        // Compute camera_front_ with the new pitch
+        glm::vec3 front;
+        front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+        front.y = sin(glm::radians(pitch_));
+        front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
+        glm::vec3 cameraReflectFront = glm::normalize(front);
+
+        glm::mat4 viewReflect = glm::lookAt(cameraReflectPos, cameraReflectPos + cameraReflectFront, camera_up_);
+
+        // Draw the scene using Clipping (cut everything that is UNDER water: 0, 1, 0, -waterHeight)
+        // Ax + By + Cz + D = 0. Ici Y > waterHeight.
+        renderScene(viewReflect, projection, glm::vec4(0, 1, 0, -waterHeight));
+
+        // Restore the pitch
+        pitch_ = oldPitch;
+
+        //SCREEN ---
+        waterFBOs->unbindCurrentFrameBuffer(); // returns to the screen buffer
+        glViewport(0, 0, width, height);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Draw the scene normally without the crippling (clipPlane = 0)
+        renderScene(view, projection, glm::vec4(0, 0, 0, 0));
+
+        // Draw water
+        glm::mat4 model = glm::mat4(1.0f);
+
+        model = glm::translate(model, glm::vec3(0, -waterHeight, 0));
+        waterObject->draw(model, view, projection);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

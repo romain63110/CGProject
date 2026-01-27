@@ -6,7 +6,9 @@ Shape::Shape(Shader *shader_program) : shader_program_(shader_program->get_id())
     
 }
 
-void Shape::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
+void Shape::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane) {
+
+    glUniform4f(glGetUniformLocation(shader_program_, "plane"), clipPlane.x, clipPlane.y, clipPlane.z, clipPlane.w);
     
     GLint loc = glGetUniformLocation(this->shader_program_, "model");
     glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));

@@ -14,7 +14,7 @@ public:
     ObjModel(Shader* shader_program, const std::string& objPath);
     ~ObjModel();
 
-    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
+    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane);
 
 private:
     struct SubMesh

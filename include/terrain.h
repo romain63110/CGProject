@@ -19,7 +19,7 @@ public:
 
     void update(glm::vec3 playerPos);
 
-    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) override;
+    void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane);
 
     float getGlobalHeight(float worldX, float worldZ);
 

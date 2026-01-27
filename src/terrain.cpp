@@ -133,7 +133,7 @@ void Terrain::update(glm::vec3 playerPos) {
     }
 }
 
-void Terrain::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
+void Terrain::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane) {
     glUseProgram(shader_);
 
     if (sandTex_)  sandTex_->bind(0);
@@ -141,6 +141,7 @@ void Terrain::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     if (rockTex_)  rockTex_->bind(2);
     if (snowTex_)  snowTex_->bind(3);
 
+    glUniform4f(glGetUniformLocation(shader_, "plane"), clipPlane.x, clipPlane.y, clipPlane.z, clipPlane.w);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "model"), 1, GL_FALSE, &model[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "view"), 1, GL_FALSE, &view[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "projection"), 1, GL_FALSE, &projection[0][0]);

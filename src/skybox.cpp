@@ -66,12 +66,13 @@ Skybox::~Skybox() {
     glDeleteBuffers(1, &VBO);
 }
 
-void Skybox::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
+void Skybox::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane) {
     glDepthFunc(GL_LEQUAL);
     glUseProgram(shader_program_);
 
     glm::mat4 viewNoTranslation = glm::mat4(glm::mat3(view));
 
+    glUniform4f(glGetUniformLocation(shader_program_, "plane"), clipPlane.x, clipPlane.y, clipPlane.z, clipPlane.w);
     glUniformMatrix4fv(glGetUniformLocation(shader_program_, "view"), 1, GL_FALSE, glm::value_ptr(viewNoTranslation));
     glUniformMatrix4fv(glGetUniformLocation(shader_program_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
