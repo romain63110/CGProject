@@ -109,7 +109,7 @@ void Viewer::run()
         flight_model_.step(aircraft_, controls_, dt);
         aircraft_.syncNode();
 
-        // ? Terrain update autour de l�avion
+        // ? Terrain update autour de l�avion
         if (terrain_ && aircraft_.node)
         {
             glm::vec3 planePos = glm::vec3(aircraft_.node->get_transform()[3]);
@@ -225,28 +225,59 @@ void Viewer::run()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         //We put the camera at the bottom
-        float distance = 2 * (camera_pos_.y - waterHeight);
-        glm::vec3 cameraReflectPos = camera_pos_;
+        float distance = 2 * (camera_.pos.y - waterHeight);
+        glm::vec3 cameraReflectPos = camera_.pos;
         cameraReflectPos.y -= distance;
 
-        // Reverse pitch (regard)
-        float oldPitch = pitch_;
-        pitch_ = -pitch_;
-        // Compute camera_front_ with the new pitch
-        glm::vec3 front;
-        front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-        front.y = sin(glm::radians(pitch_));
-        front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-        glm::vec3 cameraReflectFront = glm::normalize(front);
+        // Reverse pitch 
+        glm::vec3 camTarget = camera_.pos + camera_.front;
+        glm::vec3 cameraReflectTarget = camTarget;
+        cameraReflectTarget.y -= 2.0f * (camTarget.y - waterHeight);
 
-        glm::mat4 viewReflect = glm::lookAt(cameraReflectPos, cameraReflectPos + cameraReflectFront, camera_up_);
+        glm::mat4 viewReflect = glm::lookAt(cameraReflectPos, cameraReflectTarget, camera_.up);
 
         // Draw the scene using Clipping (cut everything that is UNDER water: 0, 1, 0, -waterHeight)
         // Ax + By + Cz + D = 0. Ici Y > waterHeight.
         renderScene(viewReflect, projection, glm::vec4(0, 1, 0, -waterHeight));
 
-        // Restore the pitch
-        pitch_ = oldPitch;
+// --- DÉBUT DEBUG EAU (Reflexion + Réfraction) ---
+
+                // 1. Récupérer les IDs des textures
+        GLuint texReflect = waterFBOs->getReflectionTexture();
+        GLuint texRefract = waterFBOs->getRefractionTexture(); // Assure-toi d'avoir cette méthode !
+
+        // 2. Configuration de la taille des images de debug
+        float debugW = 300.0f;
+        float debugH = 200.0f; // Ratio 3:2 ou 4:3 selon tes préférences
+        float padding = 10.0f;
+
+        // Position: Coin Haut-Droit
+        ImGui::SetNextWindowPos(ImVec2(width - debugW - padding, padding), ImGuiCond_Always);
+
+        // On force la largeur, mais on laisse la hauteur automatique (0) pour qu'elle s'adapte au contenu
+        ImGui::SetNextWindowSize(ImVec2(debugW + 20, 0), ImGuiCond_Always);
+
+        // Flags: Pas de déplacement, redimensionnement auto
+        ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
+
+        if (ImGui::Begin("Water Debug", nullptr, flags))
+        {
+            // --- IMAGE 1 : REFLEXION ---
+            ImGui::Text("Reflection (Miroir)");
+            ImGui::Image((void*)(intptr_t)texReflect,
+                ImVec2(debugW, debugH),
+                ImVec2(0, 1), ImVec2(1, 0)); // Flip vertical
+
+            ImGui::Separator(); // Une petite ligne de séparation
+
+            // --- IMAGE 2 : REFRACTION ---
+            ImGui::Text("Refraction (Sous l'eau)");
+            ImGui::Image((void*)(intptr_t)texRefract,
+                ImVec2(debugW, debugH),
+                ImVec2(0, 1), ImVec2(1, 0)); // Flip vertical
+        }
+        ImGui::End();
+// --- FIN DEBUG EAU ---
 
         //SCREEN ---
         waterFBOs->unbindCurrentFrameBuffer(); // returns to the screen buffer
