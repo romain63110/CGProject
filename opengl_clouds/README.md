@@ -1,7 +1,7 @@
 # Clouds and UFO rendering through Opengl 
 
 ## Project Overview
-This project is an interactive map application that allows users to navigate and explore different areas. It includes features like zooming, clickable areas, and tooltips with additional information.
+This project displays a view plane with clouds and an UFO floating and rotating
 
 ## Files  Included (important code)
 - `src/` folder contains `cloud.cpp`, `main.cpp`, `mesh.cpp` and `viewer.cpp`
@@ -27,4 +27,5 @@ Main finally calls all that and renders all three objects, Skybox, CLouds and UF
 5. Enjoy!
 
    
+
 
