@@ -1,4 +1,5 @@
 #include "obj_model.h"
+#include "texture.h"
 
 #include <fstream>
 #include <sstream>
@@ -265,6 +266,11 @@ ObjModel::ObjModel(Shader* shader_program, const std::string& objPath)
 void ObjModel::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection)
 {
     glUseProgram(shader_program_);
+
+    static Texture testUfoTex("../../../textures/ufo.jpg");
+
+    testUfoTex.bind(0);
+    glUniform1i(glGetUniformLocation(shader_program_, "ufoTexture"), 0);
 
     glUniformMatrix4fv(glGetUniformLocation(shader_program_, "model"), 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(glGetUniformLocation(shader_program_, "view"), 1, GL_FALSE, glm::value_ptr(view));

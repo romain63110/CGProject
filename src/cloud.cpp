@@ -32,7 +32,7 @@ CloudData initCloudField(const std::string& path, int count) {
     glEnableVertexAttribArray(2);
 
     if (count == 1) {
-        data.textureID = loadTexture("texture/ufoTest4.jpg");
+        data.textureID = loadTexture("../../../textures/ufo.jpg");
     } else {
         data.textureID = 0;
     }
