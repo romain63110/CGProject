@@ -12,7 +12,6 @@ CloudData initCloudField(const std::string& objPath, int count)
     CloudData data;
     data.mesh = loadOBJ(objPath);
 
-    // --- Instances ---
     std::srand((unsigned int)std::time(nullptr));
 
     for (int i = 0; i < count; ++i) {
@@ -30,7 +29,6 @@ CloudData initCloudField(const std::string& objPath, int count)
         data.instances.push_back(inst);
     }
 
-    // --- OpenGL buffers ---
     glGenVertexArrays(1, &data.VAO);
     glGenBuffers(1, &data.VBO);
     glGenBuffers(1, &data.EBO);
@@ -64,7 +62,7 @@ CloudData initCloudField(const std::string& objPath, int count)
 
     glBindVertexArray(0);
 
-    // Texture (à adapter au chemin réel)
+    // Texture (Ã  adapter au chemin rÃ©el)
     data.textureID = loadTexture("textures/ufo.jpg");
 
     return data;
