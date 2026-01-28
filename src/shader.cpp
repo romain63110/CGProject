@@ -23,7 +23,7 @@ Shader::Shader(const std::string& vertex_path, const std::string& fragment_path)
     glAttachShader(glid, frag_shader);
     glLinkProgram(glid);
 
-    // Check if shader program linked successfully
+    
     glGetProgramiv(glid, GL_LINK_STATUS, &status);
     if (status != GL_TRUE) {
         char buffer[512];
@@ -72,7 +72,7 @@ GLuint Shader::compile_shader(const std::string& path, GLenum shader_type) {
     glShaderSource(shader, 1, src_array, NULL);
     glCompileShader(shader);
 
-    // Check if shader compiled successfully
+    
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
     if (status != GL_TRUE) {
         char buffer[512];
