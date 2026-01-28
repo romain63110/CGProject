@@ -5,13 +5,12 @@ out vec4 FragColor;
 in vec3 FragPos;
 in vec3 Normal;
 
-uniform vec3 lightDir;    // direction de la lumière (ex: normalize(vec3(-1,-1,-1)))
-uniform vec3 viewPos;     // position de la caméra
+uniform vec3 lightDir;    
+uniform vec3 viewPos;     
 
-// Couleur du matériau (vert)
-uniform vec3 objectColor; // ex: vec3(0.1, 0.8, 0.2)
-uniform vec3 lightColor;  // ex: vec3(1.0)
 
+uniform vec3 objectColor; 
+uniform vec3 lightColor;  
 void main()
 {
     // Ambient
@@ -20,7 +19,7 @@ void main()
 
     // Diffuse
     vec3 norm = normalize(Normal);
-    vec3 lightDirection = normalize(-lightDir); // direction vers la lumière
+    vec3 lightDirection = normalize(-lightDir); // direction vers la lumiÃ¨re
     float diff = max(dot(norm, lightDirection), 0.0);
     vec3 diffuse = diff * lightColor;
 
