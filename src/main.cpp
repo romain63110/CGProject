@@ -62,11 +62,23 @@ int main()
         shader_dir + "ufo.vert",
         shader_dir + "ufo.frag"
     );
+
+    Shader* cloudShader = new Shader(
+        shader_dir + "cloud.vert",
+        shader_dir + "cloud.frag"
+    );
+
     //UFO
-    CloudShape* ufoShape = new CloudShape(ufoShader, &ufo);
+    CloudShape* ufoShape = new CloudShape(ufoShader, &ufo, true);
     Node* ufoNode = new Node(glm::mat4(1.0f));
     ufoNode->add(ufoShape);
     viewer.scene_root->add(ufoNode);
+
+    //Clouds
+    CloudShape* cloudShape = new CloudShape(cloudShader, &clouds);
+    Node* cloudNode = new Node(glm::mat4(1.0f));
+    cloudNode->add(cloudShape);
+    viewer.scene_root->add(cloudNode);
 
 
 

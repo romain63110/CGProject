@@ -14,14 +14,19 @@ CloudData initCloudField(const std::string& objPath, int count)
 
     // --- Instances ---
     std::srand((unsigned int)std::time(nullptr));
+
     for (int i = 0; i < count; ++i) {
         CloudInstance inst;
-        inst.position = glm::vec3(
-            (std::rand() % 200 - 100),
-            (std::rand() % 50),
-            (std::rand() % 200 - 100)
-        );
+
+        inst.position.x = (std::rand() / float(RAND_MAX) - 0.5f) * 1000.0f;
+        inst.position.z = (std::rand() / float(RAND_MAX) - 0.5f) * 1000.0f;
+
+  
+        inst.position.y = 100.0f +
+            (std::rand() / float(RAND_MAX)) * 400.0f;
+
         inst.rotation = float(std::rand() % 360);
+
         data.instances.push_back(inst);
     }
 

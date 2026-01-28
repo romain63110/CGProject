@@ -100,7 +100,7 @@ float getNoiseHeight(float x, float z)
     float plainRadius = 1600.0; // ? ancien 800 -> x2
     float plainMask = smoothstep(plainRadius * 0.7, plainRadius, distFromCenter);
 
-    finalH = mix(0.0, finalH, plainMask);
+    finalH = mix(-5.0, finalH, plainMask);
 
     // =============================
     // 5) Lake flat bottom

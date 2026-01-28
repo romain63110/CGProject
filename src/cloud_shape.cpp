@@ -3,9 +3,10 @@
 #include <GLFW/glfw3.h>
 #include <cmath>
 
-CloudShape::CloudShape(Shader* shader, CloudData* data)
-    : Shape(shader), data_(data) {
+CloudShape::CloudShape(Shader* shader, CloudData* data, bool animated)
+    : Shape(shader), data_(data), animated_(animated) {
 }
+
 
 void CloudShape::draw(glm::mat4& model,
     glm::mat4& view,
@@ -30,8 +31,9 @@ void CloudShape::draw(glm::mat4& model,
     glBindVertexArray(data_->VAO);
 
     float t = (float)glfwGetTime();
-    float hover = std::sin(t * 1.5f) * 3.0f;
-    float rot = t * 0.8f;
+    float hover = animated_ ? sin(t * 1.5f) * 3.0f : 0.0f;
+    float rot = animated_ ? t * 0.8f : 0.0f;
+
     glUseProgram(shader_program_);
 
     glUniform3f(
