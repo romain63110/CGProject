@@ -11,7 +11,7 @@
 #include "imgui_impl_opengl3.h"
 
 #include "afterburner_flame.h"
-#include "terrain.h" // ? important
+#include "terrain.h" 
 #include "water.h"
 
 
@@ -44,7 +44,7 @@ Viewer::Viewer(int width, int height)
         glfwTerminate();
     }
 
-    // ? VSync OFF
+    
     glfwSwapInterval(0);
 
     glfwSetWindowUserPointer(win, this);
@@ -110,7 +110,7 @@ void Viewer::run()
         flight_model_.step(aircraft_, controls_, dt);
         aircraft_.syncNode();
 
-        // ? Terrain update autour de l�avion
+        
         if (terrain_ && aircraft_.node)
         {
             glm::vec3 planePos = glm::vec3(aircraft_.node->get_transform()[3]);
@@ -243,13 +243,13 @@ void Viewer::run()
 
 // --- DÉBUT DEBUG EAU (Reflexion + Réfraction) ---
 
-                // 1. Récupérer les IDs des textures
+                
         GLuint texReflect = waterFBOs->getReflectionTexture();
-        GLuint texRefract = waterFBOs->getRefractionTexture(); // Assure-toi d'avoir cette méthode !
+        GLuint texRefract = waterFBOs->getRefractionTexture(); 
 
-        // 2. Configuration de la taille des images de debug
+      
         float debugW = 300.0f;
-        float debugH = 200.0f; // Ratio 3:2 ou 4:3 selon tes préférences
+        float debugH = 200.0f; 
         float padding = 10.0f;
 
         // Position: Coin Haut-Droit
@@ -263,24 +263,24 @@ void Viewer::run()
 
         if (ImGui::Begin("Water Debug", nullptr, flags))
         {
-            // --- IMAGE 1 : REFLEXION ---
+            
             ImGui::Text("Reflection (Miroir)");
             ImGui::Image((void*)(intptr_t)texReflect,
                 ImVec2(debugW, debugH),
                 ImVec2(0, 1), ImVec2(1, 0)); // Flip vertical
 
-            ImGui::Separator(); // Une petite ligne de séparation
+            ImGui::Separator(); 
 
-            // --- IMAGE 2 : REFRACTION ---
+            
             ImGui::Text("Refraction (Sous l'eau)");
             ImGui::Image((void*)(intptr_t)texRefract,
                 ImVec2(debugW, debugH),
                 ImVec2(0, 1), ImVec2(1, 0)); // Flip vertical
         }
         ImGui::End();
-// --- FIN DEBUG EAU ---
 
-        //SCREEN ---
+
+       
         waterFBOs->unbindCurrentFrameBuffer(); // returns to the screen buffer
         glViewport(0, 0, width, height);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
