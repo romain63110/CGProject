@@ -9,12 +9,11 @@ void main()
 {
     float along = clamp(vLocalPos.z, 0.0, 1.0);
 
-    // ? IMPORTANT : ton jet est inversé chez toi
     along = 1.0 - along;
 
     float r = length(vLocalPos.xy);
 
-    // ? pointe
+    
     float radius = mix(1.1, 0.02, along);
 
     float body = smoothstep(radius, radius * 0.7, r);
@@ -25,7 +24,7 @@ void main()
     float alpha = (0.35 * body + 1.2 * core) * tipFade;
     alpha *= uIntensity;
 
-    // ? super visible
+   
     alpha *= 40.0;
     alpha = clamp(alpha, 0.0, 1.0);
 
