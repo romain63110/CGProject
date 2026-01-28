@@ -4,6 +4,7 @@ By Mathis, Romain, Cathy, and Salma
 ## Project Overview
 This project is a 3D flight simulator featuring an aircraft navigating through a procedurally generated cloud environment, complete with a mysterious UFO encounter. 
 The simulation demonstrates the core principles of modern computer graphics, including real-time rendering, lighting models, and coordinate transformations.
+Opengl used with Blender.
 
 ## Main idea 
 Our project was strategically divided into three core development modules to ensure we covered every aspect of the 3D environment:
@@ -23,5 +24,6 @@ Environment & Atmosphere: Cubemap System, Skybox Assets (water and mountains).
 
 ## Playable Demo
 https://github.com/user-attachments/assets/a906216a-4807-47a9-ad86-83bce3bd6b13
+
 
 
