@@ -23,7 +23,12 @@ Advanced Texturing, UV Mapping, Phong Lighting Model
 Environment & Atmosphere: Cubemap System, Skybox Assets (water and mountains).
 
 ## Playable Demo
-https://github.com/user-attachments/assets/a906216a-4807-47a9-ad86-83bce3bd6b13
 
+<img width="764" height="492" alt="Screenshot from 2026-01-28 23-36-12" src="https://github.com/user-attachments/assets/3e6a9d39-6bcd-4e07-bdfe-b19879b2ee1f" />
+
+
+https://github.com/user-attachments/assets/0871b85d-35e4-41bf-b7b5-d15ff1a22b78
+
+https://github.com/user-attachments/assets/a906216a-4807-47a9-ad86-83bce3bd6b13
 
 
