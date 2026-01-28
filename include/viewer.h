@@ -21,12 +21,13 @@ class Viewer {
 public:
     Viewer(int width = 640, int height = 480);
 
+    
+
     void run();
 
     AfterburnerFlame* afterburnerL_ = nullptr;
     AfterburnerFlame* afterburnerR_ = nullptr;
 
-    // ? Pour que Viewer puisse update le terrain chaque frame
     Terrain* terrain_ = nullptr;
 
     void on_key(int key, int action);
@@ -36,6 +37,11 @@ public:
     Node* scene_root = nullptr;
 
     Aircraft aircraft_;
+
+
+    GLuint skyboxVAO, skyboxVBO, cubemapTexture, skyboxShader, cloudShader, ufoShader;
+
+    
 
 private:
     GLFWwindow* win = nullptr;
@@ -47,6 +53,8 @@ private:
 
     AircraftControls controls_;
     FlightModelPhysics flight_model_;
+
+
 
     CameraState camera_;
     CameraController camera_ctrl_;

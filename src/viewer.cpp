@@ -1,4 +1,5 @@
 #include "viewer.h"
+#include "cloud.h"
 
 #include <iostream>
 
@@ -350,6 +351,7 @@ void Viewer::on_key(int key, int action)
     if (key == GLFW_KEY_ESCAPE)
         glfwSetWindowShouldClose(win, GLFW_TRUE);
 }
+
 
 void Viewer::on_mouse_button(int button, int action)
 {

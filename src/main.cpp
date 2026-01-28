@@ -7,6 +7,7 @@
 #include "obj_model.h"
 #include "afterburner_flame.h"
 #include "terrain.h"
+#include "cloud.h"
 
 #include <string>
 #include <vector>
@@ -14,6 +15,7 @@
 #ifndef SHADER_DIR
 #error "SHADER_DIR not defined"
 #endif
+#include <cloud_shape.h>
 
 int main()
 {
@@ -23,9 +25,13 @@ int main()
     std::string texture_dir = "../../../textures/";
     std::string model_dir = "../../../ressources/model/";
 
-    // =========================
+    //UFO
+
+    CloudData clouds = initCloudField(model_dir + "cloud.obj", 50);
+    CloudData ufo = initCloudField(model_dir + "UFO.obj", 1);
+
+
     // SKYBOX
-    // =========================
     std::vector<std::string> faces = {
         texture_dir + "Daylight Box_Right.bmp",
         texture_dir + "Daylight Box_Left.bmp",
@@ -52,6 +58,21 @@ int main()
     Shader* plane_shader = new Shader(shader_dir + "planeshader.vert",
         shader_dir + "planeshader.frag");
 
+    Shader* ufoShader = new Shader(
+        shader_dir + "ufo.vert",
+        shader_dir + "ufo.frag"
+    );
+    //UFO
+    CloudShape* ufoShape = new CloudShape(ufoShader, &ufo);
+    Node* ufoNode = new Node(glm::mat4(1.0f));
+    ufoNode->add(ufoShape);
+    viewer.scene_root->add(ufoNode);
+
+
+
+
+
+
     // =========================
     // RUNWAY
     // =========================
@@ -67,7 +88,6 @@ int main()
     Terrain* terrain = new Terrain(terrainShader);
     viewer.scene_root->add(terrain);
 
-    // ✅ IMPORTANT : permet au Viewer de faire terrain->update(pos avion)
     viewer.terrain_ = terrain;
 
     // =========================
@@ -118,6 +138,8 @@ int main()
     Node* planeMeshNode = new Node(fix);
     Shape* planeMesh = new ObjModel(plane_shader, model_dir + "Plane.obj");
     planeMeshNode->add(planeMesh);
+
+
 
     // =========================
     // ADD TO AIRCRAFT NODE

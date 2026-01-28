@@ -9,6 +9,7 @@ set(GLEW_DIR ${EXTERNAL_DIR}/glew-cmake)
 set(GLFW_DIR ${EXTERNAL_DIR}/glfw)
 set(GLM_DIR ${EXTERNAL_DIR}/glm)
 set(IMGUI_DIR ${EXTERNAL_DIR}/imgui)
+set(ASSIMP_DIR ${EXTERNAL_DIR}/assimp)
 
 set(SOURCES
     ${SRC_DIR}/main.cpp
@@ -31,6 +32,7 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui_widgets.cpp
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+
 )
 
 add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
@@ -38,8 +40,10 @@ add_compile_definitions(SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/shaders/")
 add_subdirectory(${GLEW_DIR})
 add_subdirectory(${GLFW_DIR})
 add_subdirectory(${GLM_DIR})
+add_subdirectory(${ASSIMP_DIR})
 
-add_executable(opengl_program ${SOURCES} ${IMGUI_SOURCES} "include/aircraft.h" "src/aircraft.cpp" "include/aircraft_controls.h" "src/aircraft_controls.cpp" "include/flight_model_physics.h" "src/flight_model_physics.cpp" "include/camera_controller.h" "src/camera_controller.cpp" "include/runway.h" "src/runway.cpp" "include/obj_model.h" "src/obj_model.cpp"   "include/afterburner_flame.h" "src/afterburner_flame.cpp")
+
+add_executable(opengl_program ${SOURCES} ${IMGUI_SOURCES} "include/aircraft.h" "src/aircraft.cpp" "include/aircraft_controls.h" "src/aircraft_controls.cpp" "include/flight_model_physics.h" "src/flight_model_physics.cpp" "include/camera_controller.h" "src/camera_controller.cpp" "include/runway.h" "src/runway.cpp" "include/obj_model.h" "src/obj_model.cpp"   "include/afterburner_flame.h" "src/afterburner_flame.cpp" "src/cloud.cpp" "src/mesh.cpp" "include/cloud.h" "include/mesh.h" "include/cloud_shape.h" "src/cloud_shape.cpp")
 
 target_include_directories(opengl_program PRIVATE
     ${INCLUDE_DIR}
@@ -48,9 +52,11 @@ target_include_directories(opengl_program PRIVATE
     ${GLM_DIR}
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
+    ${ASSIMP_DIR}/include
 )
 
 target_link_libraries(opengl_program PRIVATE
     libglew_static
     glfw
+    assimp
 )
