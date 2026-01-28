@@ -71,10 +71,10 @@ void AfterburnerFlame::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projec
 
     glUseProgram(this->shader_program_);
 
-    // model/view/proj (ton Shape::draw fait juste les glUniform*)
+    
     Shape::draw(model, view, projection, clipPlane);
 
-    // uniforms supplémentaires
+    
     GLint loc = glGetUniformLocation(this->shader_program_, "uTime");
     glUniform1f(loc, timeSec);
 
@@ -84,7 +84,7 @@ void AfterburnerFlame::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projec
     loc = glGetUniformLocation(this->shader_program_, "uColor");
     glUniform3f(loc, color.x, color.y, color.z);
 
-    // états OpenGL flamme
+    // Ã©tats OpenGL flamme
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glDepthMask(GL_FALSE);
