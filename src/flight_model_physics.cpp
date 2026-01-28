@@ -239,7 +239,7 @@ void FlightModelPhysics::step(Aircraft& ac, const AircraftControls& u, float dt)
     ac.position += ac.velocity * dt;
 
     // ========= Simple runway collision =========
-    float runwayLength = 16000.0f;
+    float runwayLength = 1000.0f;
     float runwayWidth = 12.0f;
     float halfL = runwayLength * 0.5f;
     float halfW = runwayWidth * 0.5f;
