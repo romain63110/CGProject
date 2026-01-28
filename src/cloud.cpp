@@ -18,8 +18,8 @@ CloudData initCloudField(const std::string& objPath, int count)
     for (int i = 0; i < count; ++i) {
         CloudInstance inst;
 
-        inst.position.x = (std::rand() / float(RAND_MAX) - 0.5f) * 1000.0f;
-        inst.position.z = (std::rand() / float(RAND_MAX) - 0.5f) * 1000.0f;
+        inst.position.x = (std::rand() / float(RAND_MAX) - 0.5f) * 10000.0f;
+        inst.position.z = (std::rand() / float(RAND_MAX) - 0.5f) * 10000.0f;
 
   
         inst.position.y = 100.0f +

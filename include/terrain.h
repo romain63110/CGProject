@@ -29,7 +29,7 @@ private:
 
     float chunkSize_ = 256.0f;
     int resolution_ = 16;
-    int renderDistance_ = 6;
+    int renderDistance_ = 10;
 
     GLuint sharedVAO = 0;
     GLuint sharedVBO = 0;
