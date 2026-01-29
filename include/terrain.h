@@ -17,6 +17,8 @@ public:
     Terrain(Shader* terrainShader);
     ~Terrain();
 
+    void setCameraPos(const glm::vec3& pos);
+
     void update(glm::vec3 playerPos);
 
     void draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm::vec4& clipPlane);

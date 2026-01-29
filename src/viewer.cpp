@@ -217,6 +217,14 @@ void Viewer::run()
 
         glm::mat4 view = glm::lookAt(camera_.pos, camera_.pos + camera_.front, camera_.up);
 
+        // ===== FOG TERRAIN =====
+        if (terrain_)
+        {
+            terrain_->setCameraPos(camera_.pos); 
+
+        }
+
+
         //Draw the scene using Clipping (cut everything that is ON the water: 0, -1, 0, waterHeight)
         renderScene(view, projection, glm::vec4(0, -1, 0, waterHeight));
 
@@ -241,7 +249,7 @@ void Viewer::run()
         // Ax + By + Cz + D = 0. Ici Y > waterHeight.
         renderScene(viewReflect, projection, glm::vec4(0, 1, 0, -waterHeight));
 
-// --- DÉBUT DEBUG EAU (Reflexion + Réfraction) ---
+        // --- DÉBUT DEBUG EAU (Reflexion + Réfraction) ---
 
                 
         GLuint texReflect = waterFBOs->getReflectionTexture();

@@ -70,6 +70,16 @@ void Skybox::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm:
     glDepthFunc(GL_LEQUAL);
     glUseProgram(shader_program_);
 
+    glUniform3f(
+        glGetUniformLocation(shader_program_, "fogColor"),
+        0.7f, 0.8f, 0.9f
+    );
+
+    glUniform1f(
+        glGetUniformLocation(shader_program_, "fogStrength"),
+        0.6f
+    );
+
     glm::mat4 viewNoTranslation = glm::mat4(glm::mat3(view));
 
     glUniform4f(glGetUniformLocation(shader_program_, "plane"), clipPlane.x, clipPlane.y, clipPlane.z, clipPlane.w);

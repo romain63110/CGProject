@@ -2,6 +2,7 @@
 #include <iostream>
 #include <vector>
 
+
 Terrain::Terrain(Shader* terrainShader) : Node(glm::mat4(1.0f)), shader_(terrainShader->get_id()) {
     std::cout << "Terrain created" << std::endl;
 
@@ -37,6 +38,14 @@ Terrain::~Terrain() {
     }
     chunks_.clear();
 }
+
+static glm::vec3 gCameraPos;
+void Terrain::setCameraPos(const glm::vec3& pos)
+{
+    gCameraPos = pos;
+}
+
+
 
 void Terrain::generateSharedMesh() {
     std::vector<GLfloat> vertices;
@@ -147,6 +156,9 @@ void Terrain::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection, glm
     glUniformMatrix4fv(glGetUniformLocation(shader_, "projection"), 1, GL_FALSE, &projection[0][0]);
 
     glUniform1f(glGetUniformLocation(shader_, "heightScale"), 40.0f);
+    glUniform3fv(glGetUniformLocation(shader_, "cameraPos"), 1, glm::value_ptr(gCameraPos));
+    glUniform3f(glGetUniformLocation(shader_, "fogColor"), 0.7f, 0.8f, 0.9f);
+    glUniform1f(glGetUniformLocation(shader_, "fogDensity"), 0.0035f);
 
     glBindVertexArray(sharedVAO); // Loaded one time for all chunk
 
