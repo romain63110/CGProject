@@ -1,41 +1,64 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
-#include <vector>
-#include <string>
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "shader.h"
+#include <glm/glm.hpp>
+
 #include "node.h"
+
+#include "aircraft.h"
+#include "aircraft_controls.h"
+#include "flight_model_physics.h"
+#include "camera_controller.h"
+
+class AfterburnerFlame;
+class Terrain; // ? forward declaration
 
 class Viewer {
 public:
-    Viewer(int width=640, int height=480);
+    Viewer(int width = 640, int height = 480);
 
     void run();
-    void on_key(int key);
+
+    AfterburnerFlame* afterburnerL_ = nullptr;
+    AfterburnerFlame* afterburnerR_ = nullptr;
+
+    // ? Pour que Viewer puisse update le terrain chaque frame
+    Terrain* terrain_ = nullptr;
+
+    void on_key(int key, int action);
     void on_mouse_move(double xpos, double ypos);
     void on_mouse_button(int button, int action);
 
-    Node *scene_root;
+    Node* scene_root = nullptr;
+
+    Aircraft aircraft_;
+
+    //partie salma
+    Node* ufo_node_ = nullptr;
+    glm::vec3 ufo_base_pos_;
+
+    std::vector<Node*> cloud_nodes_;
 
 private:
-    GLFWwindow* win;
+    GLFWwindow* win = nullptr;
+
     static void key_callback_static(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void cursor_pos_callback_static(GLFWwindow* window, double xpos, double ypos);
     static void mouse_button_callback_static(GLFWwindow* window, int button, int action, int mods);
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
-    //CAMERA
-    bool mouse_captured_ = false;
-    bool first_mouse_ = true;
+    AircraftControls controls_;
+    FlightModelPhysics flight_model_;
 
+    CameraState camera_;
+    CameraController camera_ctrl_;
     double last_x_ = 0.0;
     double last_y_ = 0.0;
 
-    //Euler
+    // Euler
     float yaw_ = -90.0f;
     float pitch_ = 0.0f;
 

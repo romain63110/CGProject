@@ -22,22 +22,24 @@ void main()
     vec3 colSnow  = texture(textureSnow, uv).rgb;
 
     vec3 finalColor;
-    
-    float grassWeight = smoothstep(-2.0, -0.5, Height);
+
+    // ? GRASS: commence plus bas et reste plus longtemps
+    float grassWeight = smoothstep(-10.0, 5.0, Height);
     vec3 layer1 = mix(colSand, colGrass, grassWeight);
 
-    float rockWeight = smoothstep(2.0, 7.0, Height);
+    // ? ROCK: commence plus haut (donc + de grass)
+    float rockWeight = smoothstep(20.0, 60.0, Height);
     vec3 layer2 = mix(layer1, colRock, rockWeight);
 
-    float snowWeight = smoothstep(12.0, 15.0, Height);
+    // ? SNOW: un peu plus haut pour garder plus de rock/grass
+    float snowWeight = smoothstep(90.0, 130.0, Height);
     finalColor = mix(layer2, colSnow, snowWeight);
 
-
-    //Light
+    // Light
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3)); 
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
     float diff = max(dot(norm, lightDir), 0.0);
-    
+
     vec3 ambient = vec3(0.3) * finalColor;
     vec3 diffuse = diff * finalColor;
 

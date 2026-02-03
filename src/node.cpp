@@ -8,6 +8,17 @@ Node::Node(const glm::mat4& transform) :
         children_ = std::vector<Node*>();
 }
 
+void Node::set_transform(const glm::mat4& transform)
+{
+    transform_ = transform;
+}
+
+
+const glm::mat4& Node::get_transform() const
+{
+    return transform_;
+}
+
 void Node::add(Node* node) {
     children_.push_back(node);
 }

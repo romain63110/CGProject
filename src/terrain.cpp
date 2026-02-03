@@ -22,7 +22,7 @@ Terrain::Terrain(Shader* terrainShader) : Node(glm::mat4(1.0f)), shader_(terrain
     glUniform1i(glGetUniformLocation(shader_, "textureRock"), 2);
     glUniform1i(glGetUniformLocation(shader_, "textureSnow"), 3);
 
-    //Mesh Loading
+    // Mesh Loading
     generateSharedMesh();
 }
 
@@ -30,6 +30,12 @@ Terrain::~Terrain() {
     glDeleteVertexArrays(1, &sharedVAO);
     glDeleteBuffers(1, &sharedVBO);
     glDeleteBuffers(1, &sharedEBO);
+
+    // Optionnel mais conseillé : libérer les chunks
+    for (auto it = chunks_.begin(); it != chunks_.end(); ++it) {
+        delete it->second;
+    }
+    chunks_.clear();
 }
 
 void Terrain::generateSharedMesh() {
@@ -38,7 +44,7 @@ void Terrain::generateSharedMesh() {
 
     float step = chunkSize_ / (float)resolution_;
 
-    // generate shared flat plan (0,0) -> (chunkSize, chunkSize)
+    // generate shared flat plane (0,0) -> (chunkSize, chunkSize)
     for (int z = 0; z <= resolution_; ++z) {
         for (int x = 0; x <= resolution_; ++x) {
             vertices.push_back(x * step); // X
@@ -63,7 +69,7 @@ void Terrain::generateSharedMesh() {
         }
     }
 
-    indexCount_ = indices.size();
+    indexCount_ = (GLuint)indices.size();
 
     // OpenGL Setup
     glGenVertexArrays(1, &sharedVAO);
@@ -97,7 +103,7 @@ void Terrain::update(glm::vec3 playerPos) {
 
             activeKeys.push_back(key);
 
-            if (chunks_.find(key) == chunks_.end()) {//create new if it doesn't exist
+            if (chunks_.find(key) == chunks_.end()) { // create new if it doesn't exist
                 TerrainChunk* newChunk = new TerrainChunk(targetX, targetZ, chunkSize_, 4.0f);
                 chunks_[key] = newChunk;
                 std::cout << "Chunk created: " << key << std::endl;
@@ -105,12 +111,17 @@ void Terrain::update(glm::vec3 playerPos) {
         }
     }
 
-    //delete distant chunks
+    // delete distant chunks
     auto it = chunks_.begin();
     while (it != chunks_.end()) {
 
         bool keep = false;
-        for (const auto& k : activeKeys) { if (k == it->first) keep = true; }
+        for (const auto& k : activeKeys) {
+            if (k == it->first) {
+                keep = true;
+                break;
+            }
+        }
 
         if (!keep) {
             delete it->second;
@@ -134,11 +145,15 @@ void Terrain::draw(glm::mat4& model, glm::mat4& view, glm::mat4& projection) {
     glUniformMatrix4fv(glGetUniformLocation(shader_, "view"), 1, GL_FALSE, &view[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(shader_, "projection"), 1, GL_FALSE, &projection[0][0]);
 
-    glUniform1f(glGetUniformLocation(shader_, "heightScale"), 4.0f);
+    glUniform1f(glGetUniformLocation(shader_, "heightScale"), 40.0f);
 
-    glBindVertexArray(sharedVAO);// Loaded one time for all chunk
+    glBindVertexArray(sharedVAO); // Loaded one time for all chunk
 
-    for (auto const& [key, chunk] : chunks_) {
+    // ? Compatible C++11/C++14 (pas de structured bindings)
+    for (auto it = chunks_.begin(); it != chunks_.end(); ++it) {
+        // const std::string& key = it->first; // pas utilisé, mais dispo si besoin
+        TerrainChunk* chunk = it->second;
+
         // We calculate the position in the world for each chunk
         float xPos = chunk->getXIndex() * chunkSize_;
         float zPos = chunk->getZIndex() * chunkSize_;
@@ -165,7 +180,7 @@ float Terrain::getGlobalHeight(float worldX, float worldZ) {
         return chunks_[key]->getHeight(localX, localZ);
     }
 
-    return -100.0f;//default value if there is nothing
+    return -100.0f; // default value if there is nothing
 }
 
 std::string Terrain::getKey(int x, int z) {

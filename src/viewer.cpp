@@ -1,13 +1,21 @@
 #include "viewer.h"
 
 #include <iostream>
+
 #include <glm/glm.hpp>
-#include "glm/ext.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
+#include "afterburner_flame.h"
+#include "terrain.h" // ? important
+
 
 Viewer::Viewer(int width, int height)
 {
-    if (!glfwInit()) 
+    if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         glfwTerminate();
@@ -18,14 +26,13 @@ Viewer::Viewer(int width, int height)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-    
+
     win = glfwCreateWindow(width, height, "Viewer", NULL, NULL);
 
     if (win == NULL) {
         std::cerr << "Failed to create window" << std::endl;
         glfwTerminate();
     }
-
 
     glfwMakeContextCurrent(win);
 
@@ -35,77 +42,218 @@ Viewer::Viewer(int width, int height)
         glfwTerminate();
     }
 
-    // 0 = unlimited
-    // 1 = synchronized with the screen (V-Sync)
-    // 2 = half refresh rate
-    glfwSwapInterval(1);
-
+    // ? VSync OFF
+    glfwSwapInterval(0);
 
     glfwSetWindowUserPointer(win, this);
 
-    // register event handlers
     glfwSetKeyCallback(win, key_callback_static);
     glfwSetCursorPosCallback(win, cursor_pos_callback_static);
     glfwSetMouseButtonCallback(win, mouse_button_callback_static);
     glfwSetFramebufferSizeCallback(win, framebuffer_size_callback);
 
-    // Init mouse on the center
-    last_x_ = width / 2.0;
-    last_y_ = height / 2.0;
-
-
-    std::cout << glGetString(GL_VERSION) << ", GLSL "
-              << glGetString(GL_SHADING_LANGUAGE_VERSION) << ", Renderer "
-              << glGetString(GL_RENDERER) << std::endl;
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(win, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
 
     glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
-    glEnable( GL_DEPTH_TEST );
-    glDepthFunc( GL_LESS );
-
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     scene_root = new Node();
 }
 
 void Viewer::run()
 {
+    double lastTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(win))
     {
-        // clear draw buffer
+        double now = glfwGetTime();
+        float dt = float(now - lastTime);
+        lastTime = now;
+
+        glfwPollEvents();
+
+        controls_.resetAxis();
+
+        if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) controls_.aileron -= 1.0f;
+        if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) controls_.aileron += 1.0f;
+
+        if (glfwGetKey(win, GLFW_KEY_R) == GLFW_PRESS) controls_.throttle += 0.6f * dt;
+        if (glfwGetKey(win, GLFW_KEY_F) == GLFW_PRESS) controls_.throttle -= 0.6f * dt;
+
+        if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) controls_.elevator += 0.6f;
+        if (glfwGetKey(win, GLFW_KEY_X) == GLFW_PRESS) controls_.elevator += 0.2f;
+        if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) controls_.elevator -= 0.2f;
+
+        if (controls_.throttle < 0.0f) controls_.throttle = 0.0f;
+        if (controls_.throttle > 1.0f) controls_.throttle = 1.0f;
+
+        flight_model_.step(aircraft_, controls_, dt);
+        aircraft_.syncNode();
+
+        // ? Terrain update autour de l’avion
+        if (terrain_ && aircraft_.node)
+        {
+            glm::vec3 planePos = glm::vec3(aircraft_.node->get_transform()[3]);
+            terrain_->update(planePos);
+        }
+
+        if (camera_ctrl_.mode == CameraController::Mode::FreeCam)
+            camera_ctrl_.updateFreeCamKeys(win, dt, camera_);
+        else
+            camera_ctrl_.updateFollowCam(aircraft_, dt, camera_);
+
+        float t = (float)glfwGetTime();
+
+        float ab = 0.0f;
+        if (controls_.throttle > 0.9f)
+            ab = (controls_.throttle - 0.9f) / 0.1f;
+
+        if (afterburnerL_)
+        {
+            afterburnerL_->timeSec = t;
+            afterburnerL_->intensity = ab;
+        }
+
+        if (afterburnerR_)
+        {
+            afterburnerR_->timeSec = t;
+            afterburnerR_->intensity = ab;
+        }
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Debug");
+
+        ImGui::Text("FPS: %.1f", (dt > 0.0f ? 1.0f / dt : 0.0f));
+        ImGui::Separator();
+
+        ImGui::Text("Throttle: %.2f", controls_.throttle);
+        ImGui::Text("Speed: %.2f km/h", flight_model_.last_speed * 3.6f);
+        ImGui::Text("Mach: %.2f", (flight_model_.last_speed * 3.6f) / 1200.0f);
+
+        ImGui::Text("AoA: %.2f deg", flight_model_.alpha_deg);
+        ImGui::Text("CL: %.3f", flight_model_.last_CL);
+        ImGui::Text("Lift: %.1f N", flight_model_.last_L);
+        ImGui::SliderFloat("LiftPower", &flight_model_.liftPower, 0.0f, 10.0f);
+
+        ImGui::Separator();
+
+        ImGui::Text("V world : (%.2f, %.2f, %.2f)",
+            flight_model_.dbg_v_world.x,
+            flight_model_.dbg_v_world.y,
+            flight_model_.dbg_v_world.z);
+
+        ImGui::Text("V local : (%.2f, %.2f, %.2f)",
+            flight_model_.dbg_v_local.x,
+            flight_model_.dbg_v_local.y,
+            flight_model_.dbg_v_local.z);
+
+        ImGui::Separator();
+
+        ImGui::Text("Ft: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Ft.x, flight_model_.dbg_Ft.y, flight_model_.dbg_Ft.z);
+
+        ImGui::Text("Fd: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Fd.x, flight_model_.dbg_Fd.y, flight_model_.dbg_Fd.z);
+
+        ImGui::Text("FL: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_FL.x, flight_model_.dbg_FL.y, flight_model_.dbg_FL.z);
+
+        ImGui::Text("Fg: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Fg.x, flight_model_.dbg_Fg.y, flight_model_.dbg_Fg.z);
+
+        ImGui::Text("SumF: (%.1f, %.1f, %.1f)",
+            flight_model_.dbg_Fsum.x, flight_model_.dbg_Fsum.y, flight_model_.dbg_Fsum.z);
+
+        ImGui::Separator();
+
+        ImGui::SliderFloat("Tmax", &flight_model_.Tmax, 0.0f, 40000.0f);
+
+        ImGui::Separator();
+        ImGui::Text("Directional Drag");
+
+        ImGui::SliderFloat("dragForward", &flight_model_.dragForward, 0.0f, 5.0f);
+        ImGui::SliderFloat("dragBack", &flight_model_.dragBack, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragRight", &flight_model_.dragRight, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragLeft", &flight_model_.dragLeft, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragUp", &flight_model_.dragUp, 0.0f, 10.0f);
+        ImGui::SliderFloat("dragDown", &flight_model_.dragDown, 0.0f, 10.0f);
+        ImGui::Separator();
+        ImGui::Text("World Objects");
+        ImGui::Text("Clouds: %zu", cloud_nodes_.size());
+        ImGui::Text("UFO: %s", ufo_node_ ? "ON" : "OFF");
+
+
+        ImGui::End();
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         int width, height;
         glfwGetFramebufferSize(win, &width, &height);
-
         if (height == 0) height = 1;
+
         float aspect_ratio = (float)width / (float)height;
 
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect_ratio, 0.1f, 256.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera_.fov), aspect_ratio, 0.1f, 5000.0f);
+
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::lookAt(camera_pos_, camera_pos_ + camera_front_, camera_up_);
+        glm::mat4 view = glm::lookAt(camera_.pos, camera_.pos + camera_.front, camera_.up);
+        // =========================
+        // UFO (salma)
+        // =========================
+        if (ufo_node_)
+        {
+            float t = (float)glfwGetTime();
+
+            float hoverY = sin(t * 1.5f) * 3.0f;
+            float rotation = t * 0.8f;
+
+            glm::vec3 basePos(0.0f, 120.0f, 0.0f);
+
+            glm::mat4 tr = glm::translate(glm::mat4(1.0f),
+                basePos + glm::vec3(0, hoverY, 0));
+            tr = glm::rotate(tr, rotation, glm::vec3(0, 1, 0));
+            tr = glm::scale(tr, glm::vec3(10.0f));
+
+            ufo_node_->set_transform(tr);
+        }
 
         scene_root->draw(model, view, projection);
 
-        glfwPollEvents();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(win);
     }
 
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwTerminate();
 }
-
 
 void Viewer::key_callback_static(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
-    viewer->on_key(key);
+    viewer->on_key(key, action);
 }
 
-void Viewer::cursor_pos_callback_static(GLFWwindow* window, double xpos, double ypos) {
+void Viewer::cursor_pos_callback_static(GLFWwindow* window, double xpos, double ypos)
+{
     Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
     viewer->on_mouse_move(xpos, ypos);
 }
 
-void Viewer::mouse_button_callback_static(GLFWwindow* window, int button, int action, int mods) {
+void Viewer::mouse_button_callback_static(GLFWwindow* window, int button, int action, int mods)
+{
     Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
     viewer->on_mouse_button(button, action);
 }
@@ -115,63 +263,41 @@ void Viewer::framebuffer_size_callback(GLFWwindow* window, int width, int height
     glViewport(0, 0, width, height);
 }
 
-
-void Viewer::on_key(int key)
+void Viewer::on_key(int key, int action)
 {
-    if (key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q)
+    if (action != GLFW_PRESS)
+        return;
+
+    if (key == GLFW_KEY_C)
+        camera_ctrl_.toggleMode();
+
+    if (key == GLFW_KEY_TAB)
     {
-        if (mouse_captured_) {
-            mouse_captured_ = false;
-            glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-        else {
-            glfwSetWindowShouldClose(win, GLFW_TRUE);
-        }
+        camera_ctrl_.mouse_captured = !camera_ctrl_.mouse_captured;
+        camera_ctrl_.first_mouse = true;
+
+        glfwSetInputMode(win, GLFW_CURSOR,
+            camera_ctrl_.mouse_captured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
     }
+
+    if (key == GLFW_KEY_ESCAPE)
+        glfwSetWindowShouldClose(win, GLFW_TRUE);
 }
 
 void Viewer::on_mouse_button(int button, int action)
 {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
-        if (!mouse_captured_) {
-            mouse_captured_ = true;
-            first_mouse_ = true; 
+        ImGuiIO& io = ImGui::GetIO();
+        if (io.WantCaptureMouse) return;
 
-            glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        }
+        camera_ctrl_.mouse_captured = true;
+        camera_ctrl_.first_mouse = true;
+        glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 }
 
 void Viewer::on_mouse_move(double xpos, double ypos)
 {
-    if (!mouse_captured_) return;
-
-    if (first_mouse_)
-    {
-        last_x_ = xpos;
-        last_y_ = ypos;
-        first_mouse_ = false;
-    }
-
-    double xoffset = xpos - last_x_;
-    double yoffset = last_y_ - ypos;
-    last_x_ = xpos;
-    last_y_ = ypos;
-
-    float sensitivity = 0.1f;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw_ += xoffset;
-    pitch_ += yoffset;
-
-    if (pitch_ > 89.0f)  pitch_ = 89.0f;
-    if (pitch_ < -89.0f) pitch_ = -89.0f;
-
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-    front.y = sin(glm::radians(pitch_));
-    front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
-    camera_front_ = glm::normalize(front);
+    camera_ctrl_.onMouseMove(xpos, ypos, camera_);
 }
